@@ -1963,21 +1963,21 @@ __global__ void kernel_STPUpdateAndDecayConductances (int t, int sec, int simTim
 					}*/
 					// ns addition
 					runtimeDataGPU.gAMPA[nid] = tot_ampa[nid];
-					/*if (networkConfigGPU.sim_with_NMDA_rise) {		
-						runtimeDataGPU.gNMDA_d[nid] = tot_nmda[nid];
+					if (networkConfigGPU.sim_with_NMDA_rise) {		
+						runtimeDataGPU.gNMDA_d[nid] = tot_nmdad[nid];
 						runtimeDataGPU.gNMDA_r[nid] = tot_nmdar[nid];
 					}
 					else {
-						runtimeDataGPU.gNMDA[nid] = tot_nmda[nid];
+						runtimeDataGPU.gNMDA[nid] = tot_nmdad[nid];
 					}
 					runtimeDataGPU.gGABAa[nid] = tot_gabaa[nid];
 					if (networkConfigGPU.sim_with_GABAb_rise) {	
-						runtimeDataGPU.gGABAb_d[nid] = tot_gabab[nid];
+						runtimeDataGPU.gGABAb_d[nid] = tot_gababd[nid];
 						runtimeDataGPU.gGABAb_r[nid] = tot_gababr[nid];
 					}
 					else {
-						runtimeDataGPU.gGABAb[nid] = tot_gabab[nid];
-					}*/
+						runtimeDataGPU.gGABAb[nid] = tot_gababd[nid];
+					}
 				}
 
 				if (runtimeDataGPU.withSTP[lSId]) {
