@@ -961,10 +961,15 @@ __global__ void kernel_conductanceUpdate (int simTimeMs, int simTimeSec, int sim
 								AMPA_sum += change;
 							}
 
-							//if (simTimeMs == 0) {
-								runtimeDataGPU.AMPA_syn_i[0]=5;
-							//}
-							printf("%f\n",runtimeDataGPU.AMPA_syn_i[0]);
+							if (simTimeMs == 242) {
+								runtimeDataGPU.AMPA_syn_i[200]=5;
+								//printf("%d %f\n",simTimeMs,runtimeDataGPU.AMPA_syn_i[200]);
+							}
+							if (simTimeMs == 423) {
+								runtimeDataGPU.AMPA_syn_i[200]=2;
+								//printf("%d %f\n",simTimeMs,runtimeDataGPU.AMPA_syn_i[200]);
+							}
+							printf("%d %f\n",simTimeMs,runtimeDataGPU.AMPA_syn_i[200]);
 							// if((simTime % 100) && pos == 0){
 							// 	printf("spike update:: simtime:%d, postNid:%d -- pos:%d -- stpu: %f/%f -- stpx: %f/%f -- imin: %d -- iplus: %d\n", simTime, postNId, pos, runtimeDataGPU.stpu[ind_minus], runtimeDataGPU.stpu[ind_plus],
 							// 	runtimeDataGPU.stpx[ind_minus], runtimeDataGPU.stpx[ind_plus], ind_minus, ind_plus);
