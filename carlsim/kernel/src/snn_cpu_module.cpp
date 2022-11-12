@@ -2558,7 +2558,7 @@ void SNN::copyConductanceAMPA(int netId, int lGrpId, RuntimeData* dest, RuntimeD
 }
 
 void SNN::copyAMPASynI(int netId, int lGrpId, RuntimeData* dest, RuntimeData* src, bool allocateMem, int destOffset) {
-	assert(isSimulationWithCOBA());
+	/*assert(isSimulationWithCOBA());
 
 	int ptrPos, length;
 
@@ -2573,10 +2573,13 @@ void SNN::copyAMPASynI(int netId, int lGrpId, RuntimeData* dest, RuntimeData* sr
 	assert(length > 0);
 
 	//conductance information
-	assert(src->gAMPA  != NULL);
-	if(allocateMem)
-		dest->gAMPA = new float[length];
-	memcpy(&dest->gAMPA[ptrPos + destOffset], &src->gAMPA[ptrPos], sizeof(float) * length);
+	assert(src->gAMPA  != NULL);*/
+	if(allocateMem) {
+		//dest->gAMPA = new float[length];
+		dest->AMPA_syn_i = new float[MAX_CONN_PER_SNN];
+	}
+	//memcpy(&dest->gAMPA[ptrPos + destOffset], &src->gAMPA[ptrPos], sizeof(float) * length);
+	memcpy(&dest->AMPA_syn_i, &src->AMPA_syn_i, sizeof(float) * MAX_CONN_PER_SNN);
 }
 
 /*!
