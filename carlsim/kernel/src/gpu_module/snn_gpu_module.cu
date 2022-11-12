@@ -126,12 +126,13 @@ __device__  int timeTableD1GPU_tex_offset;
 __device__  int timeTableD2GPU_tex_offset;
 
 // ns addition
-__device__ float             tot_ampa[1000000];
-__device__ float             tot_nmdad[1000000];
-__device__ float             tot_nmdar[1000000];
-__device__ float             tot_gabaa[1000000];
-__device__ float             tot_gababd[1000000];
-__device__ float             tot_gababr[1000000];
+// TODO: Maybe there is a way to auto-size these arrays to less size than MAX_NUM_POST_SYN.
+__device__ float             tot_ampa[MAX_NUM_POST_SYN];
+__device__ float             tot_nmdad[MAX_NUM_POST_SYN];
+__device__ float             tot_nmdar[MAX_NUM_POST_SYN];
+__device__ float             tot_gabaa[MAX_NUM_POST_SYN];
+__device__ float             tot_gababd[MAX_NUM_POST_SYN];
+__device__ float             tot_gababr[MAX_NUM_POST_SYN];
 
 // example of the quick synaptic table
 // index     cnt
@@ -992,7 +993,7 @@ __global__ void kernel_conductanceUpdate (int simTimeMs, int simTimeSec, int sim
 								//printf("%d %d %d\n",simTimeMs,connId,networkConfigGPU.numPreSynNet);
 								//printf("%d %d %d\n",simTimeMs,connId,networkConfigGPU.numPostSynNet);
 								//printf("%d %d %d %d\n",GET_CONN_NEURON_ID(runtimeDataGPU.preSynapticIds[connId]),GET_CONN_NEURON_ID(runtimeDataGPU.postSynapticIds[connId]),pos,postNId);
-								printf("%d\n",networkConfigGPU.numConnections);
+								//printf("%d\n",networkConfigGPU.numConnections);
 								//printf("%d\n",runtimeDataGPU.preSynapticIds);
 							}
 							if (simTimeMs == 423) {
