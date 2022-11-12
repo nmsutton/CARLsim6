@@ -52,9 +52,9 @@ TEST(CA3, cstp_taud) {
 	SpkMon->startRecording();
 	for (int i=0; i<10; i++) {sim->runNetwork(0,100, true);}
 	SpkMon->stopRecording();
-	float af = SpkMon->getPopMeanFiringRate();
+	float firing_rate_1conn = SpkMon->getPopMeanFiringRate();
 	SpkMon->print(false);
-	//printf("af:%f\n",af);	
+	//printf("firing_rate_1conn:%f\n",firing_rate_1conn);	
 
 	delete sim;
 
@@ -108,13 +108,13 @@ TEST(CA3, cstp_taud) {
 	SpkMon->startRecording();
 	for (int i=0; i<10; i++) {sim2->runNetwork(0,100, true);}
 	SpkMon->stopRecording();
-	float af2 = SpkMon->getPopMeanFiringRate();
+	float firing_rate_2conn = SpkMon->getPopMeanFiringRate();
 	SpkMon->print(false);
-	//printf("af2:%f\n",af2);
+	//printf("firing_rate_2conn:%f\n",firing_rate_2conn);
 
 	delete sim2;
 
-	// Check that firing rate with additional connection and 0 external current to it 
-	// is equal or less than firing rate without the connection.
-	EXPECT_LE(af2, af); // ms
+	// Check that firing rate without an additional connection is equal or less than firing rate 
+	// with the connection and 0 external current to the additional connection.
+	EXPECT_LE(firing_rate_1conn, firing_rate_2conn); // ms
 }
