@@ -961,8 +961,10 @@ __global__ void kernel_conductanceUpdate (int simTimeMs, int simTimeSec, int sim
 								AMPA_sum += change;
 							}
 
-							//runtimeDataGPU.AMPA_syn_i[0]=5;
-							//printf("%f\n",runtimeDataGPU.AMPA_syn_i[0]);
+							//if (simTimeMs == 0) {
+								runtimeDataGPU.AMPA_syn_i[0]=5;
+							//}
+							printf("%f\n",runtimeDataGPU.AMPA_syn_i[0]);
 							// if((simTime % 100) && pos == 0){
 							// 	printf("spike update:: simtime:%d, postNid:%d -- pos:%d -- stpu: %f/%f -- stpx: %f/%f -- imin: %d -- iplus: %d\n", simTime, postNId, pos, runtimeDataGPU.stpu[ind_minus], runtimeDataGPU.stpu[ind_plus],
 							// 	runtimeDataGPU.stpx[ind_minus], runtimeDataGPU.stpx[ind_plus], ind_minus, ind_plus);
@@ -2883,8 +2885,7 @@ void SNN::copyConductanceAMPA(int netId, int lGrpId, RuntimeData* dest, RuntimeD
 }
 
 void SNN::copyAMPASynI(int netId, int lGrpId, RuntimeData* dest, RuntimeData* src, cudaMemcpyKind kind, bool allocateMem, int destOffset) {
-	
-	checkAndSetGPUDevice(netId);
+	/*checkAndSetGPUDevice(netId);
 	checkDestSrcPtrs(dest, src, kind, allocateMem, lGrpId, destOffset);// check that the destination pointer is properly allocated..
 
 	assert(isSimulationWithCOBA());
@@ -2899,13 +2900,15 @@ void SNN::copyAMPASynI(int netId, int lGrpId, RuntimeData* dest, RuntimeData* sr
 		length = groupConfigs[netId][lGrpId].numN;
 	}
 	assert(length <= networkConfigs[netId].numNReg);
-	assert(length > 0);
+	assert(length > 0);*/
 
 	//conductance information
-	assert(src->gAMPA != NULL);
-	if(allocateMem) CUDA_CHECK_ERRORS(cudaMalloc((void**)&dest->gAMPA, sizeof(float) * length));
-	CUDA_CHECK_ERRORS(cudaMemcpy(&dest->gAMPA[ptrPos + destOffset], &src->gAMPA[ptrPos], sizeof(float) * length, kind));
-	
+	//assert(src->gAMPA != NULL);
+	//if(allocateMem) CUDA_CHECK_ERRORS(cudaMalloc((void**)&dest->gAMPA, sizeof(float) * length));
+	//CUDA_CHECK_ERRORS(cudaMemcpy(&dest->gAMPA[ptrPos + destOffset], &src->gAMPA[ptrPos], sizeof(float) * length, kind));	
+	assert(src->AMPA_syn_i != NULL);
+	if(allocateMem) CUDA_CHECK_ERRORS(cudaMalloc((void**)&dest->AMPA_syn_i, sizeof(float) * MAX_CONN_PER_SNN));
+	CUDA_CHECK_ERRORS(cudaMemcpy(&dest->AMPA_syn_i[0], &src->AMPA_syn_i[0], sizeof(float) * MAX_CONN_PER_SNN, kind));	
 }
 
 /*!
