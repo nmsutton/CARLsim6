@@ -2450,7 +2450,7 @@ void SNN::copyNeuronState(int netId, int lGrpId, RuntimeData* dest, bool allocat
 #ifdef JK_CA3_SNN
 	if(sim_with_conductances) {
 		//conductance information
-		copyAMPASynI(netId, lGrpId, dest, &managerRuntimeData, allocateMem, 0);
+		copyAllSynI(netId, lGrpId, dest, &managerRuntimeData, allocateMem, 0);
 	}
 #endif
 
@@ -2557,7 +2557,7 @@ void SNN::copyConductanceAMPA(int netId, int lGrpId, RuntimeData* dest, RuntimeD
 	memcpy(&dest->gAMPA[ptrPos + destOffset], &src->gAMPA[ptrPos], sizeof(float) * length);
 }
 
-void SNN::copyAMPASynI(int netId, int lGrpId, RuntimeData* dest, RuntimeData* src, bool allocateMem, int destOffset) {
+void SNN::copyAllSynI(int netId, int lGrpId, RuntimeData* dest, RuntimeData* src, bool allocateMem, int destOffset) {
 	if(allocateMem) {
 		//dest->gAMPA = new float[length];
 		dest->AMPA_syn_i = new float[MAX_CONN_PER_SNN];

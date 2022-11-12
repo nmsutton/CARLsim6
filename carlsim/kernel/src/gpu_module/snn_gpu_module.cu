@@ -989,12 +989,20 @@ __global__ void kernel_conductanceUpdate (int simTimeMs, int simTimeSec, int sim
 							if (simTimeMs == 242) {
 								//runtimeDataGPU.AMPA_syn_i[200]=5;
 								//printf("%d %f\n",simTimeMs,runtimeDataGPU.AMPA_syn_i[200]);
+								//printf("%d %d %d\n",simTimeMs,connId,networkConfigGPU.numPreSynNet);
+								//printf("%d %d %d\n",simTimeMs,connId,networkConfigGPU.numPostSynNet);
+								//printf("%d %d %d %d\n",GET_CONN_NEURON_ID(runtimeDataGPU.preSynapticIds[connId]),GET_CONN_NEURON_ID(runtimeDataGPU.postSynapticIds[connId]),pos,postNId);
+								printf("%d\n",networkConfigGPU.numConnections);
+								//printf("%d\n",runtimeDataGPU.preSynapticIds);
 							}
 							if (simTimeMs == 423) {
 								//runtimeDataGPU.AMPA_syn_i[200]=2;
 								//printf("%d %f\n",simTimeMs,runtimeDataGPU.AMPA_syn_i[200]);
 							}
-							printf("%d %d %f\n",simTimeMs,connId,runtimeDataGPU.AMPA_syn_i[connId]);
+							if (AMPA_sum > 0.1) {
+								//printf("%d %d %d %d %d %f\n",simTimeMs,GET_CONN_NEURON_ID(runtimeDataGPU.preSynapticIds[connId]),GET_CONN_NEURON_ID(runtimeDataGPU.postSynapticIds[connId]),pos,postNId,AMPA_sum);
+							}
+							//printf("%d %d %f\n",simTimeMs,connId,runtimeDataGPU.AMPA_syn_i[connId]);
 							// if((simTime % 100) && pos == 0){
 							// 	printf("spike update:: simtime:%d, postNid:%d -- pos:%d -- stpu: %f/%f -- stpx: %f/%f -- imin: %d -- iplus: %d\n", simTime, postNId, pos, runtimeDataGPU.stpu[ind_minus], runtimeDataGPU.stpu[ind_plus],
 							// 	runtimeDataGPU.stpx[ind_minus], runtimeDataGPU.stpx[ind_plus], ind_minus, ind_plus);
@@ -1837,10 +1845,18 @@ __global__ void kernel_STPDecayConductances (int t, int sec, int simTime) {
 		int grpId = STATIC_LOAD_GROUP(threadLoad);	
 		
 		if ((threadIdx.x < lastId) && (nid < networkConfigGPU.numN)) {
-			if (nid == 0) {
-				for (int connId = 0; connId < networkConfigGPU.numConnections; connId++) {
-					int pre_id = GET_CONN_NEURON_ID(runtimeDataGPU.preSynapticIds[connId]);
-					int post_id = GET_CONN_NEURON_ID(runtimeDataGPU.postSynapticIds[connId]);
+			unsigned int offset = runtimeDataGPU.cumulativePre[nid];
+			// printf("outside decay update loop:: simtime:%d -- postNid:%d -- offset:%d -- npre:%d\n", simTime, nid, offset, runtimeDataGPU.Npre[nid]);
+			for (int j = 0; j < runtimeDataGPU.Npre[nid]; j++) {
+				// printf("inside decay update loop:: simtime:%d -- postNid:%d -- offset:%d -- npre:%d\n", simTime, nid, offset, runtimeDataGPU.Npre[nid]);
+				int lSId = offset + j;
+
+				// update the conductane parameter of the current neron
+				if (networkConfigGPU.sim_with_conductances && IS_REGULAR_NEURON(nid, networkConfigGPU.numNReg, networkConfigGPU.numNPois)) {
+					int pre_id = lSId;
+					int post_id = nid;
+					int connId = runtimeDataGPU.connIdsPreIdx[lSId];
+					//printf("%d %d %d %d\n",t,lSId,nid,connId);				
 
 					runtimeDataGPU.AMPA_syn_i[connId] *= runtimeDataGPU.stp_dAMPA[pre_id];
 					tot_ampa[post_id] += runtimeDataGPU.AMPA_syn_i[connId];
@@ -1859,7 +1875,33 @@ __global__ void kernel_STPDecayConductances (int t, int sec, int simTime) {
 						tot_gababr[post_id] -= runtimeDataGPU.GABAb_r_syn_i[connId];
 					}
 				}
-			}
+			}			
+
+			/*if (nid == 0) {
+				//for (int connId = 0; connId < networkConfigGPU.numConnections; connId++) {
+				for (int connId = 0; connId < 10; connId++) {
+					int pre_id = GET_CONN_NEURON_ID(runtimeDataGPU.preSynapticIds[connId]);
+					int post_id = GET_CONN_NEURON_ID(runtimeDataGPU.postSynapticIds[connId]);
+					printf("%d %d %d\n",t,pre_id,post_id);
+
+					runtimeDataGPU.AMPA_syn_i[connId] *= runtimeDataGPU.stp_dAMPA[pre_id];
+					tot_ampa[post_id] += runtimeDataGPU.AMPA_syn_i[connId];
+					runtimeDataGPU.NMDA_d_syn_i[connId] *= runtimeDataGPU.stp_dNMDA[pre_id];
+					tot_nmdad[post_id] += runtimeDataGPU.NMDA_d_syn_i[connId];
+					if (networkConfigGPU.sim_with_NMDA_rise) {
+						runtimeDataGPU.NMDA_r_syn_i[connId] *= runtimeDataGPU.stp_rNMDA[pre_id];
+						tot_nmdar[post_id] += runtimeDataGPU.NMDA_r_syn_i[connId];
+					}
+					runtimeDataGPU.GABAa_syn_i[connId] *= runtimeDataGPU.stp_dGABAa[pre_id];
+					tot_gabaa[post_id] -= runtimeDataGPU.GABAa_syn_i[connId];
+					runtimeDataGPU.GABAb_d_syn_i[connId] *= runtimeDataGPU.stp_dGABAb[pre_id];
+					tot_gababd[post_id] -= runtimeDataGPU.GABAb_d_syn_i[connId];
+					if (networkConfigGPU.sim_with_GABAb_rise) {
+						runtimeDataGPU.GABAb_r_syn_i[connId] *= runtimeDataGPU.stp_rGABAb[pre_id];
+						tot_gababr[post_id] -= runtimeDataGPU.GABAb_r_syn_i[connId];
+					}
+				}
+			}*/
 		}
 	}
 }
@@ -2983,7 +3025,7 @@ void SNN::copyConductanceAMPA(int netId, int lGrpId, RuntimeData* dest, RuntimeD
 	CUDA_CHECK_ERRORS(cudaMemcpy(&dest->gAMPA[ptrPos + destOffset], &src->gAMPA[ptrPos], sizeof(float) * length, kind));
 }
 
-void SNN::copyAMPASynI(int netId, int lGrpId, RuntimeData* dest, RuntimeData* src, cudaMemcpyKind kind, bool allocateMem, int destOffset) {
+void SNN::copyAllSynI(int netId, int lGrpId, RuntimeData* dest, RuntimeData* src, cudaMemcpyKind kind, bool allocateMem, int destOffset) {
 	// TODO: this function may me called for every group and copies all synapse data every time.
 	// It could be more efficient to have this copy operation occur less frequently if some copies
 	// are redundant.
@@ -3252,7 +3294,7 @@ void SNN::copyNeuronState(int netId, int lGrpId, RuntimeData* dest, cudaMemcpyKi
 		copyConductanceGABAa(netId, lGrpId, dest, &managerRuntimeData, cudaMemcpyHostToDevice, allocateMem, 0);
 		copyConductanceGABAb(netId, lGrpId, dest, &managerRuntimeData, cudaMemcpyHostToDevice, allocateMem, 0);
 	}
-	copyAMPASynI(netId, lGrpId, dest, &managerRuntimeData, cudaMemcpyHostToDevice, allocateMem, 0);
+	copyAllSynI(netId, lGrpId, dest, &managerRuntimeData, cudaMemcpyHostToDevice, allocateMem, 0);
 
 	// copying external current needs to be done separately because setExternalCurrent needs to call it, too
 	// do it only from host to device
