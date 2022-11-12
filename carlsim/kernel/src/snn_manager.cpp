@@ -3386,6 +3386,23 @@ void SNN::allocateManagerRuntimeData() {
 	memset(managerRuntimeData.gGABAb_d, 0, sizeof(float) * managerRTDSize.glbNumNReg);
 	memset(managerRuntimeData.gGABAb, 0, sizeof(float) * managerRTDSize.glbNumNReg);
 
+#ifdef JK_CA3_SNN
+	// ns added
+	// TODO: add auto-sizing of arrays
+	managerRuntimeData.AMPA_syn_i = new float[MAX_CONN_PER_SNN];
+	managerRuntimeData.NMDA_d_syn_i = new float[MAX_CONN_PER_SNN];
+	managerRuntimeData.NMDA_r_syn_i = new float[MAX_CONN_PER_SNN];
+	managerRuntimeData.GABAa_syn_i = new float[MAX_CONN_PER_SNN];
+	managerRuntimeData.GABAb_d_syn_i = new float[MAX_CONN_PER_SNN];
+	managerRuntimeData.GABAb_r_syn_i = new float[MAX_CONN_PER_SNN];	
+	memset(managerRuntimeData.AMPA_syn_i, 0, sizeof(float) * MAX_CONN_PER_SNN);
+	memset(managerRuntimeData.NMDA_d_syn_i, 0, sizeof(float) * MAX_CONN_PER_SNN);
+	memset(managerRuntimeData.NMDA_r_syn_i, 0, sizeof(float) * MAX_CONN_PER_SNN);
+	memset(managerRuntimeData.GABAa_syn_i, 0, sizeof(float) * MAX_CONN_PER_SNN);
+	memset(managerRuntimeData.GABAb_d_syn_i, 0, sizeof(float) * MAX_CONN_PER_SNN);
+	memset(managerRuntimeData.GABAb_r_syn_i, 0, sizeof(float) * MAX_CONN_PER_SNN);
+#endif
+
 	// allocate neuromodulators and their assistive buffers
 	managerRuntimeData.grpDA  = new float[managerRTDSize.maxNumGroups];
 	managerRuntimeData.grp5HT = new float[managerRTDSize.maxNumGroups];
@@ -7507,6 +7524,18 @@ void SNN::deleteManagerRuntimeData() {
 	if (managerRuntimeData.gGABAb_d!=NULL) delete[] managerRuntimeData.gGABAb_d;
 	managerRuntimeData.gAMPA=NULL; managerRuntimeData.gNMDA=NULL; managerRuntimeData.gNMDA_r=NULL; managerRuntimeData.gNMDA_d=NULL;
 	managerRuntimeData.gGABAa=NULL; managerRuntimeData.gGABAb=NULL; managerRuntimeData.gGABAb_r=NULL; managerRuntimeData.gGABAb_d=NULL;
+	#ifdef JK_CA3_SNN
+		// ns added
+		if (managerRuntimeData.AMPA_syn_i!=NULL) delete[] managerRuntimeData.AMPA_syn_i;
+		if (managerRuntimeData.NMDA_d_syn_i!=NULL) delete[] managerRuntimeData.NMDA_d_syn_i;
+		if (managerRuntimeData.NMDA_r_syn_i!=NULL) delete[] managerRuntimeData.NMDA_r_syn_i;
+		if (managerRuntimeData.GABAa_syn_i!=NULL) delete[] managerRuntimeData.GABAa_syn_i;
+		if (managerRuntimeData.GABAb_d_syn_i!=NULL) delete[] managerRuntimeData.GABAb_d_syn_i;
+		if (managerRuntimeData.GABAb_r_syn_i!=NULL) delete[] managerRuntimeData.GABAb_r_syn_i;	
+		managerRuntimeData.AMPA_syn_i=NULL; managerRuntimeData.NMDA_d_syn_i=NULL;
+		managerRuntimeData.NMDA_r_syn_i=NULL; managerRuntimeData.GABAa_syn_i=NULL;
+		managerRuntimeData.GABAb_d_syn_i=NULL; managerRuntimeData.GABAb_r_syn_i=NULL;
+	#endif
 
 	if (managerRuntimeData.stpu!=NULL) delete[] managerRuntimeData.stpu;
 	if (managerRuntimeData.stpx!=NULL) delete[] managerRuntimeData.stpx;

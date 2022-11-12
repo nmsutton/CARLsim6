@@ -2446,6 +2446,14 @@ void SNN::copyNeuronState(int netId, int lGrpId, RuntimeData* dest, bool allocat
 		dest->current = new float[length];
 	memcpy(&dest->current[ptrPos], &managerRuntimeData.current[ptrPos], sizeof(float) * length);
 
+// ns addition
+#ifdef JK_CA3_SNN
+	if(sim_with_conductances) {
+		//conductance information
+		copyAMPASynI(netId, lGrpId, dest, &managerRuntimeData, allocateMem, 0);
+	}
+#endif
+
 #ifdef LN_I_CALC_TYPES	
 	if (lGrpId == ALL) {
 	 	// LN20210913 if ommitted  crash at #491: runtimeData[netId].gAMPA[lNId] *= groupConfig.dAMPA;
@@ -2528,6 +2536,28 @@ void SNN::copyNeuronState(int netId, int lGrpId, RuntimeData* dest, bool allocat
  * \since v3.0
  */
 void SNN::copyConductanceAMPA(int netId, int lGrpId, RuntimeData* dest, RuntimeData* src, bool allocateMem, int destOffset) {
+	assert(isSimulationWithCOBA());
+
+	int ptrPos, length;
+
+	if(lGrpId == ALL) {
+		ptrPos = 0;
+		length = networkConfigs[netId].numNReg;
+	} else {
+		ptrPos = groupConfigs[netId][lGrpId].lStartN;
+		length = groupConfigs[netId][lGrpId].numN;
+	}
+	assert(length <= networkConfigs[netId].numNReg);
+	assert(length > 0);
+
+	//conductance information
+	assert(src->gAMPA  != NULL);
+	if(allocateMem)
+		dest->gAMPA = new float[length];
+	memcpy(&dest->gAMPA[ptrPos + destOffset], &src->gAMPA[ptrPos], sizeof(float) * length);
+}
+
+void SNN::copyAMPASynI(int netId, int lGrpId, RuntimeData* dest, RuntimeData* src, bool allocateMem, int destOffset) {
 	assert(isSimulationWithCOBA());
 
 	int ptrPos, length;
