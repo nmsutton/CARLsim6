@@ -2882,8 +2882,8 @@ void SNN::copyConductanceAMPA(int netId, int lGrpId, RuntimeData* dest, RuntimeD
 	CUDA_CHECK_ERRORS(cudaMemcpy(&dest->gAMPA[ptrPos + destOffset], &src->gAMPA[ptrPos], sizeof(float) * length, kind));
 }
 
-//void SNN::copyAMPASynI(int netId, int lGrpId, RuntimeData* dest, RuntimeData* src, cudaMemcpyKind kind, bool allocateMem, int destOffset) {
-	/*
+void SNN::copyAMPASynI(int netId, int lGrpId, RuntimeData* dest, RuntimeData* src, cudaMemcpyKind kind, bool allocateMem, int destOffset) {
+	
 	checkAndSetGPUDevice(netId);
 	checkDestSrcPtrs(dest, src, kind, allocateMem, lGrpId, destOffset);// check that the destination pointer is properly allocated..
 
@@ -2905,8 +2905,8 @@ void SNN::copyConductanceAMPA(int netId, int lGrpId, RuntimeData* dest, RuntimeD
 	assert(src->gAMPA != NULL);
 	if(allocateMem) CUDA_CHECK_ERRORS(cudaMalloc((void**)&dest->gAMPA, sizeof(float) * length));
 	CUDA_CHECK_ERRORS(cudaMemcpy(&dest->gAMPA[ptrPos + destOffset], &src->gAMPA[ptrPos], sizeof(float) * length, kind));
-	*/
-//}
+	
+}
 
 /*!
  * \brief this function allocates device (GPU) memory sapce and copies NMDA conductance to it
@@ -3140,7 +3140,7 @@ void SNN::copyNeuronState(int netId, int lGrpId, RuntimeData* dest, cudaMemcpyKi
 		copyConductanceGABAa(netId, lGrpId, dest, &managerRuntimeData, cudaMemcpyHostToDevice, allocateMem, 0);
 		copyConductanceGABAb(netId, lGrpId, dest, &managerRuntimeData, cudaMemcpyHostToDevice, allocateMem, 0);
 	}
-	//copyAMPASynI(netId, lGrpId, dest, &managerRuntimeData, cudaMemcpyHostToDevice, allocateMem, 0);
+	copyAMPASynI(netId, lGrpId, dest, &managerRuntimeData, cudaMemcpyHostToDevice, allocateMem, 0);
 
 	// copying external current needs to be done separately because setExternalCurrent needs to call it, too
 	// do it only from host to device
