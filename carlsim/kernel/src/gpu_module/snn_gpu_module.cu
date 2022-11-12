@@ -125,6 +125,14 @@ texture <int,    1, cudaReadModeElementType>  groupIdInfo_tex; // groupIDInfo is
 __device__  int timeTableD1GPU_tex_offset;
 __device__  int timeTableD2GPU_tex_offset;
 
+// ns addition
+__device__ float             tot_ampa[1000000];
+__device__ float             tot_nmdad[1000000];
+__device__ float             tot_nmdar[1000000];
+__device__ float             tot_gabaa[1000000];
+__device__ float             tot_gababd[1000000];
+__device__ float             tot_gababr[1000000];
+
 // example of the quick synaptic table
 // index     cnt
 // 0000000 - 0
@@ -922,8 +930,9 @@ __global__ void kernel_conductanceUpdate (int simTimeMs, int simTimeSec, int sim
 							float STP_A = (runtimeDataGPU.stp_U[pos] > 0.0f) ? 1.0 / runtimeDataGPU.stp_U[pos] : 1.0f;
 							change *= STP_A * runtimeDataGPU.stpx[ind_minus] * runtimeDataGPU.stpu[ind_plus];
 
+							short int connId = runtimeDataGPU.connIdsPreIdx[cum_pos + wtId]; // ns moved
 							if (networkConfigGPU.sim_with_conductances) {
-								short int connId = runtimeDataGPU.connIdsPreIdx[cum_pos + wtId];
+								//short int connId = runtimeDataGPU.connIdsPreIdx[cum_pos + wtId];
 								if (type & TARGET_AMPA)
 									AMPA_sum += change * d_mulSynFast[connId];
 								// 								AMPA_sum += change * d_mulSynFast[connId] * runtimeDataGPU.stp_dAMPA[pos];
@@ -960,16 +969,32 @@ __global__ void kernel_conductanceUpdate (int simTimeMs, int simTimeSec, int sim
 								// updated current for neuron 'post_nid'
 								AMPA_sum += change;
 							}
-
+							// ns addition
+							runtimeDataGPU.AMPA_syn_i[connId] += AMPA_sum;
+							/*if (networkConfigGPU.sim_with_NMDA_rise) {
+								runtimeDataGPU.NMDA_d_syn_i[connId] += NMDA_d_sum;
+								runtimeDataGPU.NMDA_r_syn_i[connId] += NMDA_r_sum;
+							}
+							else {
+								runtimeDataGPU.NMDA_d_syn_i[connId] += NMDA_sum;
+							}
+							runtimeDataGPU.GABAa_syn_i[connId] += GABAa_sum;
+							if (networkConfigGPU.sim_with_GABAb_rise) {
+								runtimeDataGPU.GABAb_d_syn_i[connId] += GABAb_d_sum;
+								runtimeDataGPU.GABAb_r_syn_i[connId] += GABAb_r_sum;
+							}
+							else {
+								runtimeDataGPU.GABAb_d_syn_i[connId] += GABAb_sum;
+							}*/
 							if (simTimeMs == 242) {
-								runtimeDataGPU.AMPA_syn_i[200]=5;
+								//runtimeDataGPU.AMPA_syn_i[200]=5;
 								//printf("%d %f\n",simTimeMs,runtimeDataGPU.AMPA_syn_i[200]);
 							}
 							if (simTimeMs == 423) {
-								runtimeDataGPU.AMPA_syn_i[200]=2;
+								//runtimeDataGPU.AMPA_syn_i[200]=2;
 								//printf("%d %f\n",simTimeMs,runtimeDataGPU.AMPA_syn_i[200]);
 							}
-							printf("%d %f\n",simTimeMs,runtimeDataGPU.AMPA_syn_i[200]);
+							printf("%d %d %f\n",simTimeMs,connId,runtimeDataGPU.AMPA_syn_i[connId]);
 							// if((simTime % 100) && pos == 0){
 							// 	printf("spike update:: simtime:%d, postNid:%d -- pos:%d -- stpu: %f/%f -- stpx: %f/%f -- imin: %d -- iplus: %d\n", simTime, postNId, pos, runtimeDataGPU.stpu[ind_minus], runtimeDataGPU.stpu[ind_plus],
 							// 	runtimeDataGPU.stpx[ind_minus], runtimeDataGPU.stpx[ind_plus], ind_minus, ind_plus);
@@ -1787,6 +1812,54 @@ __global__ void kernel_groupStateUpdate(int simTime) {
 	}
 }
 
+__global__ void kernel_STPInit (int t, int sec, int simTime) {
+	// reference: https://medium.com/@avinkavish/introduction-to-parallel-programming-with-cuda-and-c-ff2ca339aca
+	const int totConns = MAX_CONN_PER_SNN;
+	//for (int i = blockIdx.x; i < totConns; i += gridDim.x) {
+	int globalIdx = blockIdx.x * blockDim.x + threadIdx.x;
+	while (globalIdx < MAX_CONN_PER_SNN) {
+		tot_ampa[globalIdx]=0;tot_nmdad[globalIdx]=0;tot_nmdar[globalIdx]=0;
+		tot_gabaa[globalIdx]=0;tot_gababd[globalIdx]=0;tot_gababr[globalIdx]=0;
+
+		globalIdx +=  blockDim.x * gridDim.x;
+        __syncthreads();
+	}
+}
+
+__global__ void kernel_STPDecayConductances (int t, int sec, int simTime) {
+	//int pre_id, post_id;
+	const int totBuffers = loadBufferCount;
+	for (int bufPos = blockIdx.x; bufPos < totBuffers; bufPos += gridDim.x) {
+		int2 threadLoad = getStaticThreadLoad(bufPos);
+		int nid = (STATIC_LOAD_START(threadLoad) + threadIdx.x);
+		int lastId = STATIC_LOAD_SIZE(threadLoad);
+		int grpId = STATIC_LOAD_GROUP(threadLoad);	
+		
+		if ((threadIdx.x < lastId) && (nid < networkConfigGPU.numN)) {
+			if (nid == 0) {
+				for (int connId = 0; connId < networkConfigGPU.numConnections; connId++) {
+					int pre_id = GET_CONN_NEURON_ID(runtimeDataGPU.preSynapticIds[connId]);
+					int post_id = GET_CONN_NEURON_ID(runtimeDataGPU.postSynapticIds[connId]);
+					
+					//if (t ==242) {
+					if (true) {
+						//printf("%d %f %d %d %f\n",t,AMPA_syn_i[connId],connId,networkConfigGPU.numConnections,runtimeDataGPU.stp_dAMPA[pre_id]);
+						//printf("%d %d\n",t,post_id);
+						//tot_ampa[3]=0;
+						//printf("%d %f\n",t,tot_ampa[3]);
+					}
+					runtimeDataGPU.AMPA_syn_i[connId] *= runtimeDataGPU.stp_dAMPA[pre_id];
+					tot_ampa[post_id] += runtimeDataGPU.AMPA_syn_i[connId];
+				}
+				//for (std::map<int, ConnectConfig>::iterator connIt = connectConfigMap.begin(); connIt != connectConfigMap.end(); connIt++) {
+					//printf("%f\n",connIt->gNMDA);
+				//}
+				//////
+			}
+		}
+	}
+}
+
 //******************************** UPDATE STP STATE EVERY TIME STEP **********************************************
 /*!
  * \brief This function is called for updat STP and decay coductance every time step
@@ -1868,7 +1941,8 @@ __global__ void kernel_STPUpdateAndDecayConductances (int t, int sec, int simTim
 
 				// update the conductane parameter of the current neron
 				if (networkConfigGPU.sim_with_conductances && IS_REGULAR_NEURON(nid, networkConfigGPU.numNReg, networkConfigGPU.numNPois)) {
-					runtimeDataGPU.gAMPA[nid] *= runtimeDataGPU.stp_dAMPA[lSId];
+					//runtimeDataGPU.gAMPA[nid] *= runtimeDataGPU.stp_dAMPA[lSId];
+					runtimeDataGPU.gAMPA[nid] = tot_ampa[nid];
 					if (networkConfigGPU.sim_with_NMDA_rise) {
 						runtimeDataGPU.gNMDA_r[nid] *= runtimeDataGPU.stp_rNMDA[lSId];
 						runtimeDataGPU.gNMDA_d[nid] *= runtimeDataGPU.stp_dNMDA[lSId];
@@ -2890,6 +2964,9 @@ void SNN::copyConductanceAMPA(int netId, int lGrpId, RuntimeData* dest, RuntimeD
 }
 
 void SNN::copyAMPASynI(int netId, int lGrpId, RuntimeData* dest, RuntimeData* src, cudaMemcpyKind kind, bool allocateMem, int destOffset) {
+	// TODO: this function may me called for every group and copies all synapse data every time.
+	// It could be more efficient to have this copy operation occur less frequently if some copies
+	// are redundant.
 	/*checkAndSetGPUDevice(netId);
 	checkDestSrcPtrs(dest, src, kind, allocateMem, lGrpId, destOffset);// check that the destination pointer is properly allocated..
 
@@ -3997,6 +4074,8 @@ void SNN::doSTPUpdateAndDecayCond_GPU(int netId) {
 	checkAndSetGPUDevice(netId);
 
 	if (sim_with_stp || sim_with_conductances) {
+		kernel_STPInit<<<NUM_BLOCKS, NUM_THREADS>>>(simTimeMs, simTimeSec, simTime);
+		kernel_STPDecayConductances<<<NUM_BLOCKS, NUM_THREADS>>>(simTimeMs, simTimeSec, simTime);
 		kernel_STPUpdateAndDecayConductances<<<NUM_BLOCKS, NUM_THREADS>>>(simTimeMs, simTimeSec, simTime);
 		CUDA_GET_LAST_ERROR("STP update\n");
 	}
