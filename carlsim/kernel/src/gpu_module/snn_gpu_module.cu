@@ -971,7 +971,7 @@ __global__ void kernel_conductanceUpdate (int simTimeMs, int simTimeSec, int sim
 							}
 							// ns addition
 							runtimeDataGPU.AMPA_syn_i[connId] += AMPA_sum;
-							/*if (networkConfigGPU.sim_with_NMDA_rise) {
+							if (networkConfigGPU.sim_with_NMDA_rise) {
 								runtimeDataGPU.NMDA_d_syn_i[connId] += NMDA_d_sum;
 								runtimeDataGPU.NMDA_r_syn_i[connId] += NMDA_r_sum;
 							}
@@ -985,7 +985,7 @@ __global__ void kernel_conductanceUpdate (int simTimeMs, int simTimeSec, int sim
 							}
 							else {
 								runtimeDataGPU.GABAb_d_syn_i[connId] += GABAb_sum;
-							}*/
+							}
 							if (simTimeMs == 242) {
 								//runtimeDataGPU.AMPA_syn_i[200]=5;
 								//printf("%d %f\n",simTimeMs,runtimeDataGPU.AMPA_syn_i[200]);
@@ -1813,9 +1813,9 @@ __global__ void kernel_groupStateUpdate(int simTime) {
 }
 
 __global__ void kernel_STPInit (int t, int sec, int simTime) {
+	// ns addition
 	// reference: https://medium.com/@avinkavish/introduction-to-parallel-programming-with-cuda-and-c-ff2ca339aca
 	const int totConns = MAX_CONN_PER_SNN;
-	//for (int i = blockIdx.x; i < totConns; i += gridDim.x) {
 	int globalIdx = blockIdx.x * blockDim.x + threadIdx.x;
 	while (globalIdx < MAX_CONN_PER_SNN) {
 		tot_ampa[globalIdx]=0;tot_nmdad[globalIdx]=0;tot_nmdar[globalIdx]=0;
@@ -1827,7 +1827,8 @@ __global__ void kernel_STPInit (int t, int sec, int simTime) {
 }
 
 __global__ void kernel_STPDecayConductances (int t, int sec, int simTime) {
-	//int pre_id, post_id;
+	// ns addition
+	// TODO: this could be coded more computationally efficiently
 	const int totBuffers = loadBufferCount;
 	for (int bufPos = blockIdx.x; bufPos < totBuffers; bufPos += gridDim.x) {
 		int2 threadLoad = getStaticThreadLoad(bufPos);
@@ -1840,21 +1841,24 @@ __global__ void kernel_STPDecayConductances (int t, int sec, int simTime) {
 				for (int connId = 0; connId < networkConfigGPU.numConnections; connId++) {
 					int pre_id = GET_CONN_NEURON_ID(runtimeDataGPU.preSynapticIds[connId]);
 					int post_id = GET_CONN_NEURON_ID(runtimeDataGPU.postSynapticIds[connId]);
-					
-					//if (t ==242) {
-					if (true) {
-						//printf("%d %f %d %d %f\n",t,AMPA_syn_i[connId],connId,networkConfigGPU.numConnections,runtimeDataGPU.stp_dAMPA[pre_id]);
-						//printf("%d %d\n",t,post_id);
-						//tot_ampa[3]=0;
-						//printf("%d %f\n",t,tot_ampa[3]);
-					}
+
 					runtimeDataGPU.AMPA_syn_i[connId] *= runtimeDataGPU.stp_dAMPA[pre_id];
 					tot_ampa[post_id] += runtimeDataGPU.AMPA_syn_i[connId];
+					runtimeDataGPU.NMDA_d_syn_i[connId] *= runtimeDataGPU.stp_dNMDA[pre_id];
+					tot_nmdad[post_id] += runtimeDataGPU.NMDA_d_syn_i[connId];
+					if (networkConfigGPU.sim_with_NMDA_rise) {
+						runtimeDataGPU.NMDA_r_syn_i[connId] *= runtimeDataGPU.stp_rNMDA[pre_id];
+						tot_nmdar[post_id] += runtimeDataGPU.NMDA_r_syn_i[connId];
+					}
+					runtimeDataGPU.GABAa_syn_i[connId] *= runtimeDataGPU.stp_dGABAa[pre_id];
+					tot_gabaa[post_id] -= runtimeDataGPU.GABAa_syn_i[connId];
+					runtimeDataGPU.GABAb_d_syn_i[connId] *= runtimeDataGPU.stp_dGABAb[pre_id];
+					tot_gababd[post_id] -= runtimeDataGPU.GABAb_d_syn_i[connId];
+					if (networkConfigGPU.sim_with_GABAb_rise) {
+						runtimeDataGPU.GABAb_r_syn_i[connId] *= runtimeDataGPU.stp_rGABAb[pre_id];
+						tot_gababr[post_id] -= runtimeDataGPU.GABAb_r_syn_i[connId];
+					}
 				}
-				//for (std::map<int, ConnectConfig>::iterator connIt = connectConfigMap.begin(); connIt != connectConfigMap.end(); connIt++) {
-					//printf("%f\n",connIt->gNMDA);
-				//}
-				//////
 			}
 		}
 	}
@@ -1942,8 +1946,7 @@ __global__ void kernel_STPUpdateAndDecayConductances (int t, int sec, int simTim
 				// update the conductane parameter of the current neron
 				if (networkConfigGPU.sim_with_conductances && IS_REGULAR_NEURON(nid, networkConfigGPU.numNReg, networkConfigGPU.numNPois)) {
 					//runtimeDataGPU.gAMPA[nid] *= runtimeDataGPU.stp_dAMPA[lSId];
-					runtimeDataGPU.gAMPA[nid] = tot_ampa[nid];
-					if (networkConfigGPU.sim_with_NMDA_rise) {
+					/*if (networkConfigGPU.sim_with_NMDA_rise) {
 						runtimeDataGPU.gNMDA_r[nid] *= runtimeDataGPU.stp_rNMDA[lSId];
 						runtimeDataGPU.gNMDA_d[nid] *= runtimeDataGPU.stp_dNMDA[lSId];
 					}
@@ -1957,7 +1960,24 @@ __global__ void kernel_STPUpdateAndDecayConductances (int t, int sec, int simTim
 					}
 					else {
 						runtimeDataGPU.gGABAb[nid] *= runtimeDataGPU.stp_dGABAb[lSId];
+					}*/
+					// ns addition
+					runtimeDataGPU.gAMPA[nid] = tot_ampa[nid];
+					/*if (networkConfigGPU.sim_with_NMDA_rise) {		
+						runtimeDataGPU.gNMDA_d[nid] = tot_nmda[nid];
+						runtimeDataGPU.gNMDA_r[nid] = tot_nmdar[nid];
 					}
+					else {
+						runtimeDataGPU.gNMDA[nid] = tot_nmda[nid];
+					}
+					runtimeDataGPU.gGABAa[nid] = tot_gabaa[nid];
+					if (networkConfigGPU.sim_with_GABAb_rise) {	
+						runtimeDataGPU.gGABAb_d[nid] = tot_gabab[nid];
+						runtimeDataGPU.gGABAb_r[nid] = tot_gababr[nid];
+					}
+					else {
+						runtimeDataGPU.gGABAb[nid] = tot_gabab[nid];
+					}*/
 				}
 
 				if (runtimeDataGPU.withSTP[lSId]) {
@@ -2967,30 +2987,37 @@ void SNN::copyAMPASynI(int netId, int lGrpId, RuntimeData* dest, RuntimeData* sr
 	// TODO: this function may me called for every group and copies all synapse data every time.
 	// It could be more efficient to have this copy operation occur less frequently if some copies
 	// are redundant.
-	/*checkAndSetGPUDevice(netId);
-	checkDestSrcPtrs(dest, src, kind, allocateMem, lGrpId, destOffset);// check that the destination pointer is properly allocated..
 
-	assert(isSimulationWithCOBA());
-
-	int ptrPos, length;
-
-	if(lGrpId == ALL) {
-		ptrPos = 0;
-		length = networkConfigs[netId].numNReg;
-	} else {
-		ptrPos = groupConfigs[netId][lGrpId].lStartN;
-		length = groupConfigs[netId][lGrpId].numN;
-	}
-	assert(length <= networkConfigs[netId].numNReg);
-	assert(length > 0);*/
-
-	//conductance information
-	//assert(src->gAMPA != NULL);
-	//if(allocateMem) CUDA_CHECK_ERRORS(cudaMalloc((void**)&dest->gAMPA, sizeof(float) * length));
-	//CUDA_CHECK_ERRORS(cudaMemcpy(&dest->gAMPA[ptrPos + destOffset], &src->gAMPA[ptrPos], sizeof(float) * length, kind));	
 	assert(src->AMPA_syn_i != NULL);
+	assert(src->NMDA_d_syn_i != NULL);	
+	if (networkConfigGPU.sim_with_NMDA_rise) {
+		assert(src->NMDA_r_syn_i != NULL);
+	}
+	assert(src->GABAa_syn_i != NULL);
+	assert(src->GABAb_d_syn_i != NULL);	
+	if (networkConfigGPU.sim_with_GABAb_rise) {
+		assert(src->GABAb_r_syn_i != NULL);
+	}
 	if(allocateMem) CUDA_CHECK_ERRORS(cudaMalloc((void**)&dest->AMPA_syn_i, sizeof(float) * MAX_CONN_PER_SNN));
+	if(allocateMem) CUDA_CHECK_ERRORS(cudaMalloc((void**)&dest->NMDA_d_syn_i, sizeof(float) * MAX_CONN_PER_SNN));
+	if (networkConfigGPU.sim_with_NMDA_rise) {
+		if(allocateMem) CUDA_CHECK_ERRORS(cudaMalloc((void**)&dest->NMDA_r_syn_i, sizeof(float) * MAX_CONN_PER_SNN));
+	}
+	if(allocateMem) CUDA_CHECK_ERRORS(cudaMalloc((void**)&dest->GABAa_syn_i, sizeof(float) * MAX_CONN_PER_SNN));
+	if(allocateMem) CUDA_CHECK_ERRORS(cudaMalloc((void**)&dest->GABAb_d_syn_i, sizeof(float) * MAX_CONN_PER_SNN));
+	if (networkConfigGPU.sim_with_GABAb_rise) {
+		if(allocateMem) CUDA_CHECK_ERRORS(cudaMalloc((void**)&dest->GABAb_r_syn_i, sizeof(float) * MAX_CONN_PER_SNN));
+	}
 	CUDA_CHECK_ERRORS(cudaMemcpy(&dest->AMPA_syn_i[0], &src->AMPA_syn_i[0], sizeof(float) * MAX_CONN_PER_SNN, kind));	
+	CUDA_CHECK_ERRORS(cudaMemcpy(&dest->NMDA_d_syn_i[0], &src->NMDA_d_syn_i[0], sizeof(float) * MAX_CONN_PER_SNN, kind));	
+	if (networkConfigGPU.sim_with_NMDA_rise) {
+		CUDA_CHECK_ERRORS(cudaMemcpy(&dest->NMDA_r_syn_i[0], &src->NMDA_r_syn_i[0], sizeof(float) * MAX_CONN_PER_SNN, kind));	
+	}
+	CUDA_CHECK_ERRORS(cudaMemcpy(&dest->GABAa_syn_i[0], &src->GABAa_syn_i[0], sizeof(float) * MAX_CONN_PER_SNN, kind));	
+	CUDA_CHECK_ERRORS(cudaMemcpy(&dest->GABAb_d_syn_i[0], &src->GABAb_d_syn_i[0], sizeof(float) * MAX_CONN_PER_SNN, kind));	
+	if (networkConfigGPU.sim_with_GABAb_rise) {
+		CUDA_CHECK_ERRORS(cudaMemcpy(&dest->GABAb_r_syn_i[0], &src->GABAb_r_syn_i[0], sizeof(float) * MAX_CONN_PER_SNN, kind));	
+	}
 }
 
 /*!

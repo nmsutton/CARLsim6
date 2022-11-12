@@ -2558,28 +2558,29 @@ void SNN::copyConductanceAMPA(int netId, int lGrpId, RuntimeData* dest, RuntimeD
 }
 
 void SNN::copyAMPASynI(int netId, int lGrpId, RuntimeData* dest, RuntimeData* src, bool allocateMem, int destOffset) {
-	/*assert(isSimulationWithCOBA());
-
-	int ptrPos, length;
-
-	if(lGrpId == ALL) {
-		ptrPos = 0;
-		length = networkConfigs[netId].numNReg;
-	} else {
-		ptrPos = groupConfigs[netId][lGrpId].lStartN;
-		length = groupConfigs[netId][lGrpId].numN;
-	}
-	assert(length <= networkConfigs[netId].numNReg);
-	assert(length > 0);
-
-	//conductance information
-	assert(src->gAMPA  != NULL);*/
 	if(allocateMem) {
 		//dest->gAMPA = new float[length];
 		dest->AMPA_syn_i = new float[MAX_CONN_PER_SNN];
+		dest->NMDA_d_syn_i = new float[MAX_CONN_PER_SNN];
+		if (sim_with_NMDA_rise) {
+			dest->NMDA_r_syn_i = new float[MAX_CONN_PER_SNN];
+		}
+		dest->GABAa_syn_i = new float[MAX_CONN_PER_SNN];
+		dest->GABAb_d_syn_i = new float[MAX_CONN_PER_SNN];
+		if (sim_with_GABAb_rise) {
+			dest->GABAb_r_syn_i = new float[MAX_CONN_PER_SNN];
+		}
 	}
-	//memcpy(&dest->gAMPA[ptrPos + destOffset], &src->gAMPA[ptrPos], sizeof(float) * length);
 	memcpy(&dest->AMPA_syn_i, &src->AMPA_syn_i, sizeof(float) * MAX_CONN_PER_SNN);
+	memcpy(&dest->NMDA_d_syn_i, &src->NMDA_d_syn_i, sizeof(float) * MAX_CONN_PER_SNN);
+	if (sim_with_NMDA_rise) {
+		memcpy(&dest->NMDA_r_syn_i, &src->NMDA_r_syn_i, sizeof(float) * MAX_CONN_PER_SNN);
+	}
+	memcpy(&dest->GABAa_syn_i, &src->GABAa_syn_i, sizeof(float) * MAX_CONN_PER_SNN);
+	memcpy(&dest->GABAb_d_syn_i, &src->GABAb_d_syn_i, sizeof(float) * MAX_CONN_PER_SNN);
+	if (sim_with_GABAb_rise) {
+		memcpy(&dest->GABAb_r_syn_i, &src->GABAb_r_syn_i, sizeof(float) * MAX_CONN_PER_SNN);
+	}
 }
 
 /*!
