@@ -3040,25 +3040,25 @@ void SNN::copyAllSynI(int netId, int lGrpId, RuntimeData* dest, RuntimeData* src
 	if (networkConfigGPU.sim_with_GABAb_rise) {
 		assert(src->GABAb_r_syn_i != NULL);
 	}
-	if(allocateMem) CUDA_CHECK_ERRORS(cudaMalloc((void**)&dest->AMPA_syn_i, sizeof(float) * MAX_CONN_PER_SNN));
-	if(allocateMem) CUDA_CHECK_ERRORS(cudaMalloc((void**)&dest->NMDA_d_syn_i, sizeof(float) * MAX_CONN_PER_SNN));
+	if(allocateMem) CUDA_CHECK_ERRORS(cudaMalloc((void**)&dest->AMPA_syn_i, sizeof(float) * managerRTDSize.maxNumPreSynNet));
+	if(allocateMem) CUDA_CHECK_ERRORS(cudaMalloc((void**)&dest->NMDA_d_syn_i, sizeof(float) * managerRTDSize.maxNumPreSynNet));
 	if (networkConfigGPU.sim_with_NMDA_rise) {
-		if(allocateMem) CUDA_CHECK_ERRORS(cudaMalloc((void**)&dest->NMDA_r_syn_i, sizeof(float) * MAX_CONN_PER_SNN));
+		if(allocateMem) CUDA_CHECK_ERRORS(cudaMalloc((void**)&dest->NMDA_r_syn_i, sizeof(float) * managerRTDSize.maxNumPreSynNet));
 	}
-	if(allocateMem) CUDA_CHECK_ERRORS(cudaMalloc((void**)&dest->GABAa_syn_i, sizeof(float) * MAX_CONN_PER_SNN));
-	if(allocateMem) CUDA_CHECK_ERRORS(cudaMalloc((void**)&dest->GABAb_d_syn_i, sizeof(float) * MAX_CONN_PER_SNN));
+	if(allocateMem) CUDA_CHECK_ERRORS(cudaMalloc((void**)&dest->GABAa_syn_i, sizeof(float) * managerRTDSize.maxNumPreSynNet));
+	if(allocateMem) CUDA_CHECK_ERRORS(cudaMalloc((void**)&dest->GABAb_d_syn_i, sizeof(float) * managerRTDSize.maxNumPreSynNet));
 	if (networkConfigGPU.sim_with_GABAb_rise) {
-		if(allocateMem) CUDA_CHECK_ERRORS(cudaMalloc((void**)&dest->GABAb_r_syn_i, sizeof(float) * MAX_CONN_PER_SNN));
+		if(allocateMem) CUDA_CHECK_ERRORS(cudaMalloc((void**)&dest->GABAb_r_syn_i, sizeof(float) * managerRTDSize.maxNumPreSynNet));
 	}
-	CUDA_CHECK_ERRORS(cudaMemcpy(&dest->AMPA_syn_i[0], &src->AMPA_syn_i[0], sizeof(float) * MAX_CONN_PER_SNN, kind));	
-	CUDA_CHECK_ERRORS(cudaMemcpy(&dest->NMDA_d_syn_i[0], &src->NMDA_d_syn_i[0], sizeof(float) * MAX_CONN_PER_SNN, kind));	
+	CUDA_CHECK_ERRORS(cudaMemcpy(&dest->AMPA_syn_i[0], &src->AMPA_syn_i[0], sizeof(float) * managerRTDSize.maxNumPreSynNet, kind));	
+	CUDA_CHECK_ERRORS(cudaMemcpy(&dest->NMDA_d_syn_i[0], &src->NMDA_d_syn_i[0], sizeof(float) * managerRTDSize.maxNumPreSynNet, kind));	
 	if (networkConfigGPU.sim_with_NMDA_rise) {
-		CUDA_CHECK_ERRORS(cudaMemcpy(&dest->NMDA_r_syn_i[0], &src->NMDA_r_syn_i[0], sizeof(float) * MAX_CONN_PER_SNN, kind));	
+		CUDA_CHECK_ERRORS(cudaMemcpy(&dest->NMDA_r_syn_i[0], &src->NMDA_r_syn_i[0], sizeof(float) * managerRTDSize.maxNumPreSynNet, kind));	
 	}
-	CUDA_CHECK_ERRORS(cudaMemcpy(&dest->GABAa_syn_i[0], &src->GABAa_syn_i[0], sizeof(float) * MAX_CONN_PER_SNN, kind));	
-	CUDA_CHECK_ERRORS(cudaMemcpy(&dest->GABAb_d_syn_i[0], &src->GABAb_d_syn_i[0], sizeof(float) * MAX_CONN_PER_SNN, kind));	
+	CUDA_CHECK_ERRORS(cudaMemcpy(&dest->GABAa_syn_i[0], &src->GABAa_syn_i[0], sizeof(float) * managerRTDSize.maxNumPreSynNet, kind));	
+	CUDA_CHECK_ERRORS(cudaMemcpy(&dest->GABAb_d_syn_i[0], &src->GABAb_d_syn_i[0], sizeof(float) * managerRTDSize.maxNumPreSynNet, kind));	
 	if (networkConfigGPU.sim_with_GABAb_rise) {
-		CUDA_CHECK_ERRORS(cudaMemcpy(&dest->GABAb_r_syn_i[0], &src->GABAb_r_syn_i[0], sizeof(float) * MAX_CONN_PER_SNN, kind));	
+		CUDA_CHECK_ERRORS(cudaMemcpy(&dest->GABAb_r_syn_i[0], &src->GABAb_r_syn_i[0], sizeof(float) * managerRTDSize.maxNumPreSynNet, kind));	
 	}
 }
 

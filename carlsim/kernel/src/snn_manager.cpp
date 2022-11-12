@@ -3389,18 +3389,19 @@ void SNN::allocateManagerRuntimeData() {
 #ifdef JK_CA3_SNN
 	// ns added
 	// TODO: add auto-sizing of arrays
-	managerRuntimeData.AMPA_syn_i = new float[MAX_CONN_PER_SNN];
-	managerRuntimeData.NMDA_d_syn_i = new float[MAX_CONN_PER_SNN];
-	managerRuntimeData.NMDA_r_syn_i = new float[MAX_CONN_PER_SNN];
-	managerRuntimeData.GABAa_syn_i = new float[MAX_CONN_PER_SNN];
-	managerRuntimeData.GABAb_d_syn_i = new float[MAX_CONN_PER_SNN];
-	managerRuntimeData.GABAb_r_syn_i = new float[MAX_CONN_PER_SNN];	
-	memset(managerRuntimeData.AMPA_syn_i, 0, sizeof(float) * MAX_CONN_PER_SNN);
-	memset(managerRuntimeData.NMDA_d_syn_i, 0, sizeof(float) * MAX_CONN_PER_SNN);
-	memset(managerRuntimeData.NMDA_r_syn_i, 0, sizeof(float) * MAX_CONN_PER_SNN);
-	memset(managerRuntimeData.GABAa_syn_i, 0, sizeof(float) * MAX_CONN_PER_SNN);
-	memset(managerRuntimeData.GABAb_d_syn_i, 0, sizeof(float) * MAX_CONN_PER_SNN);
-	memset(managerRuntimeData.GABAb_r_syn_i, 0, sizeof(float) * MAX_CONN_PER_SNN);
+	//managerRuntimeData.AMPA_syn_i = new float[MAX_CONN_PER_SNN];
+	managerRuntimeData.AMPA_syn_i = new float[managerRTDSize.maxNumPreSynNet];
+	managerRuntimeData.NMDA_d_syn_i = new float[managerRTDSize.maxNumPreSynNet];
+	managerRuntimeData.NMDA_r_syn_i = new float[managerRTDSize.maxNumPreSynNet];
+	managerRuntimeData.GABAa_syn_i = new float[managerRTDSize.maxNumPreSynNet];
+	managerRuntimeData.GABAb_d_syn_i = new float[managerRTDSize.maxNumPreSynNet];
+	managerRuntimeData.GABAb_r_syn_i = new float[managerRTDSize.maxNumPreSynNet];	
+	memset(managerRuntimeData.AMPA_syn_i, 0, sizeof(float) * managerRTDSize.maxNumPreSynNet);
+	memset(managerRuntimeData.NMDA_d_syn_i, 0, sizeof(float) * managerRTDSize.maxNumPreSynNet);
+	memset(managerRuntimeData.NMDA_r_syn_i, 0, sizeof(float) * managerRTDSize.maxNumPreSynNet);
+	memset(managerRuntimeData.GABAa_syn_i, 0, sizeof(float) * managerRTDSize.maxNumPreSynNet);
+	memset(managerRuntimeData.GABAb_d_syn_i, 0, sizeof(float) * managerRTDSize.maxNumPreSynNet);
+	memset(managerRuntimeData.GABAb_r_syn_i, 0, sizeof(float) * managerRTDSize.maxNumPreSynNet);
 #endif
 
 	// allocate neuromodulators and their assistive buffers

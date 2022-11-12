@@ -2560,26 +2560,26 @@ void SNN::copyConductanceAMPA(int netId, int lGrpId, RuntimeData* dest, RuntimeD
 void SNN::copyAllSynI(int netId, int lGrpId, RuntimeData* dest, RuntimeData* src, bool allocateMem, int destOffset) {
 	if(allocateMem) {
 		//dest->gAMPA = new float[length];
-		dest->AMPA_syn_i = new float[MAX_CONN_PER_SNN];
-		dest->NMDA_d_syn_i = new float[MAX_CONN_PER_SNN];
+		dest->AMPA_syn_i = new float[managerRTDSize.maxNumPreSynNet];
+		dest->NMDA_d_syn_i = new float[managerRTDSize.maxNumPreSynNet];
 		if (sim_with_NMDA_rise) {
-			dest->NMDA_r_syn_i = new float[MAX_CONN_PER_SNN];
+			dest->NMDA_r_syn_i = new float[managerRTDSize.maxNumPreSynNet];
 		}
-		dest->GABAa_syn_i = new float[MAX_CONN_PER_SNN];
-		dest->GABAb_d_syn_i = new float[MAX_CONN_PER_SNN];
+		dest->GABAa_syn_i = new float[managerRTDSize.maxNumPreSynNet];
+		dest->GABAb_d_syn_i = new float[managerRTDSize.maxNumPreSynNet];
 		if (sim_with_GABAb_rise) {
-			dest->GABAb_r_syn_i = new float[MAX_CONN_PER_SNN];
+			dest->GABAb_r_syn_i = new float[managerRTDSize.maxNumPreSynNet];
 		}
 	}
-	memcpy(&dest->AMPA_syn_i, &src->AMPA_syn_i, sizeof(float) * MAX_CONN_PER_SNN);
-	memcpy(&dest->NMDA_d_syn_i, &src->NMDA_d_syn_i, sizeof(float) * MAX_CONN_PER_SNN);
+	memcpy(&dest->AMPA_syn_i, &src->AMPA_syn_i, sizeof(float) * managerRTDSize.maxNumPreSynNet);
+	memcpy(&dest->NMDA_d_syn_i, &src->NMDA_d_syn_i, sizeof(float) * managerRTDSize.maxNumPreSynNet);
 	if (sim_with_NMDA_rise) {
-		memcpy(&dest->NMDA_r_syn_i, &src->NMDA_r_syn_i, sizeof(float) * MAX_CONN_PER_SNN);
+		memcpy(&dest->NMDA_r_syn_i, &src->NMDA_r_syn_i, sizeof(float) * managerRTDSize.maxNumPreSynNet);
 	}
-	memcpy(&dest->GABAa_syn_i, &src->GABAa_syn_i, sizeof(float) * MAX_CONN_PER_SNN);
-	memcpy(&dest->GABAb_d_syn_i, &src->GABAb_d_syn_i, sizeof(float) * MAX_CONN_PER_SNN);
+	memcpy(&dest->GABAa_syn_i, &src->GABAa_syn_i, sizeof(float) * managerRTDSize.maxNumPreSynNet);
+	memcpy(&dest->GABAb_d_syn_i, &src->GABAb_d_syn_i, sizeof(float) * managerRTDSize.maxNumPreSynNet);
 	if (sim_with_GABAb_rise) {
-		memcpy(&dest->GABAb_r_syn_i, &src->GABAb_r_syn_i, sizeof(float) * MAX_CONN_PER_SNN);
+		memcpy(&dest->GABAb_r_syn_i, &src->GABAb_r_syn_i, sizeof(float) * managerRTDSize.maxNumPreSynNet);
 	}
 }
 
