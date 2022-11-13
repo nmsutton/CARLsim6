@@ -51,7 +51,6 @@
 #include <snn.h>
 #include <sstream>
 #include <algorithm>
-#include <map> // NS addition
 
 #include <connection_monitor.h>
 #include <connection_monitor_core.h>
@@ -7139,59 +7138,6 @@ int SNN::loadSimulation_internal(bool onlyPlastic) {
 	return 0;
 }
 
-void SNN::findSynIds(int netId) {
-	// NS addition
-	// This function creates short and long sized ids for mapping [preId,postId] to unique synId.
-	// There is a unique synId for every synapse in the simulation.
-	// TODO: this does not yet handle different netIds to assign preIds and postIds?
-	// That could be checked.
-	int postId, preId;
-	int synIdShort = 0;
-	for (int lGrpId = 0; lGrpId < networkConfigs[netId].numGroups; lGrpId++) {
-		for (int lNId = groupConfigs[netId][lGrpId].lStartN; lNId <= groupConfigs[netId][lGrpId].lEndN; lNId++) {
-			postId = lNId;
-			/*unsigned int offset = runtimeData[netId].cumulativePre[lNId];
-			for (int j = 0; j < runtimeData[netId].Npre[lNId]; j++) {
-				preId = offset + j;
-
-			}*/
-			unsigned int offset = managerRuntimeData.cumulativePre[lNId];
-			for (int j = 0; j < managerRuntimeData.Npre[lNId]; j++) {
-				preId = offset + j;
-				synIdShortToLong.insert(std::make_pair(synIdShort, ((postId*MAX_NUM_PRE_SYN)+preId)));
-				synIdLongToShort.insert(std::make_pair(((postId*MAX_NUM_PRE_SYN)+preId), synIdShort));
-				//printf("preId: %d postId: %d\n",preId,postId);
-				synIdShort++;
-			}
-			//int offset = runtimeData[netId].cumulativePre[lNId];
-			//unsigned int offset = managerRuntimeData.cumulativePre[lNId];
-			//int num_pre = managerRuntimeData.Npre[lNId];
-			//printf("postId: %d offset: %d\n",postId,offset);			
-		}
-	}
-}
-
-int SNN::getSynIdPre(int synIdShort) {
-	// NS addition
-	// Get synapse id - return preId
-
-	return synIdShortToLong[synIdShort] % MAX_NUM_PRE_SYN;
-}
-
-int SNN::getSynIdPost(int synIdShort) {
-	// NS addition
-	// Get synapse id - return postId
-
-	return synIdShortToLong[synIdShort] / MAX_NUM_PRE_SYN;
-}
-
-int SNN::getSynIdL2S(int preId, int postId) {
-	// NS addition
-	// Get synapse id - long to short
-
-	return synIdLongToShort[(postId*MAX_NUM_PRE_SYN)+preId];
-}
-
 void SNN::generateRuntimeSNN() {
 	// 1. genearte configurations for the simulation
 	// generate (copy) group configs from groupPartitionLists[]
@@ -7275,8 +7221,6 @@ void SNN::generateRuntimeSNN() {
 			resetSynapse(netId, false);
 
 			allocateSNN(netId);
-
-			findSynIds(netId); // NS addition
 		}
 	}
 

@@ -994,7 +994,6 @@ private:
 	void updateTimingTable();
 	void updateWeights();
 	void updateNetworkConfig(int netId);
-	void findSynIds(int netId); // NS addition
 
 	// Abstract layer for trasferring data (local-to-global copy)
 	void fetchConductanceAMPA(int gGrpId);
@@ -1253,11 +1252,6 @@ private:
 	bool getPoissonSpike(int lNId, int netId);
 	bool getSpikeGenBit(unsigned int nIdPos, int netId);
 
-	// Synapse Id Mapping; NS addition
-	int getSynIdPre(int synIdShort);
-	int getSynIdPost(int synIdShort);
-	int getSynIdL2S(int preId, int postId);
-
 	// +++++ PRIVATE PROPERTIES +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ //
 	SNNState snnState; //!< state of the network
 	FILE* loadSimFID;
@@ -1286,9 +1280,6 @@ private:
 	std::map<int, GroupConfigMD> groupConfigMDMap; //!< the hash table storing group configs meta data generated at SETUP_STATE
 	std::map<int, ConnectConfig> connectConfigMap; //!< the hash table storing connection configs created at CONFIG_STATE
 	std::map<int, compConnectConfig> compConnectConfigMap; //!< the hash table storing compConnection configs created at CONFIG_STATE
-
-	std::map<int, int> synIdShortToLong; // map of unique synId (short id) to [preID,postID] (long id). NS addition
-	std::map<int, int> synIdLongToShort; // map of [preID,postID] to unique synId. NS addition
 
 	// data structure assisting network partitioning
 	std::list<GroupConfigMD> groupPartitionLists[MAX_NET_PER_SNN];
