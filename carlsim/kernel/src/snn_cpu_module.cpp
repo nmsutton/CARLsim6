@@ -2446,10 +2446,9 @@ void SNN::copyNeuronState(int netId, int lGrpId, RuntimeData* dest, bool allocat
 		dest->current = new float[length];
 	memcpy(&dest->current[ptrPos], &managerRuntimeData.current[ptrPos], sizeof(float) * length);
 
-// ns addition
+// NS addition
 #ifdef JK_CA3_SNN
 	if(sim_with_conductances) {
-		// NS addition
 		copyAllSynI(netId, lGrpId, dest, &managerRuntimeData, allocateMem, 0);
 	}
 #endif
