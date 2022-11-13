@@ -861,9 +861,6 @@ __global__ void kernel_conductanceUpdate (int simTimeMs, int simTimeSec, int sim
 		int2 threadLoad = getStaticThreadLoad(bufPos);
 		int  postNId = STATIC_LOAD_START(threadLoad) + threadIdx.x;
 		int  lastNId = STATIC_LOAD_SIZE(threadLoad);
-		if (postNId == 0) {
-			synId = 0; // NS addition
-		}
 //#ifdef LN_I_CALC_TYPES
 //		int  grpId = STATIC_LOAD_GROUP(threadLoad);  //LN sanity check
 //#endif
@@ -1816,6 +1813,10 @@ __global__ void kernel_STPInit (int t, int sec, int simTime) {
 	}
 }
 
+__global__ void kernel_resetSynIdCounter () {
+	synId = 0; // NS addition
+}
+
 __global__ void kernel_STPDecayConductances (int t, int sec, int simTime) {
 	// NS addition
 	// TODO: this could be coded more computationally efficiently
@@ -1825,9 +1826,6 @@ __global__ void kernel_STPDecayConductances (int t, int sec, int simTime) {
 		int nid = (STATIC_LOAD_START(threadLoad) + threadIdx.x);
 		int lastId = STATIC_LOAD_SIZE(threadLoad);
 		int grpId = STATIC_LOAD_GROUP(threadLoad);	
-		if (nid == 0) {
-			synId = 0; // NS addition
-		}
 		
 		if ((threadIdx.x < lastId) && (nid < networkConfigGPU.numN)) {
 			unsigned int offset = runtimeDataGPU.cumulativePre[nid];
@@ -4105,6 +4103,7 @@ void SNN::doSTPUpdateAndDecayCond_GPU(int netId) {
 
 	if (sim_with_stp || sim_with_conductances) {
 		kernel_STPInit<<<NUM_BLOCKS, NUM_THREADS>>>(simTimeMs, simTimeSec, simTime);
+		kernel_resetSynIdCounter<<<1, 1>>>();
 		kernel_STPDecayConductances<<<NUM_BLOCKS, NUM_THREADS>>>(simTimeMs, simTimeSec, simTime);
 		kernel_STPUpdateAndDecayConductances<<<NUM_BLOCKS, NUM_THREADS>>>(simTimeMs, simTimeSec, simTime);
 		CUDA_GET_LAST_ERROR("STP update\n");
@@ -4263,6 +4262,7 @@ void SNN::globalStateUpdate_C_GPU(int netId) {
 	assert(runtimeData[netId].memType == GPU_MEM);
 	checkAndSetGPUDevice(netId);
 
+	kernel_resetSynIdCounter<<<1, 1>>>();
 	kernel_conductanceUpdate << <NUM_BLOCKS, NUM_THREADS >> > (simTimeMs, simTimeSec, simTime);
 	CUDA_GET_LAST_ERROR("kernel_conductanceUpdate failed");
 
