@@ -861,6 +861,9 @@ __global__ void kernel_conductanceUpdate (int simTimeMs, int simTimeSec, int sim
 		int2 threadLoad = getStaticThreadLoad(bufPos);
 		int  postNId = STATIC_LOAD_START(threadLoad) + threadIdx.x;
 		int  lastNId = STATIC_LOAD_SIZE(threadLoad);
+		if (postNId == 0) {
+			synId = 0; // NS addition
+		}
 //#ifdef LN_I_CALC_TYPES
 //		int  grpId = STATIC_LOAD_GROUP(threadLoad);  //LN sanity check
 //#endif
@@ -879,7 +882,6 @@ __global__ void kernel_conductanceUpdate (int simTimeMs, int simTimeSec, int sim
 			float GABAb_d_sum	 = 0.0f;
 			int   lmt			 = runtimeDataGPU.Npre[postNId];
 			unsigned int cum_pos = runtimeDataGPU.cumulativePre[postNId];
-			synId = 0;
 
 			// find the total current to this neuron...
 			for (int j = 0; (lmt) && (j <= ((lmt - 1) >> LOG_CURRENT_GROUP)); j++) {
@@ -1819,11 +1821,13 @@ __global__ void kernel_STPDecayConductances (int t, int sec, int simTime) {
 	// TODO: this could be coded more computationally efficiently
 	const int totBuffers = loadBufferCount;
 	for (int bufPos = blockIdx.x; bufPos < totBuffers; bufPos += gridDim.x) {
-		synId = 0;
 		int2 threadLoad = getStaticThreadLoad(bufPos);
 		int nid = (STATIC_LOAD_START(threadLoad) + threadIdx.x);
 		int lastId = STATIC_LOAD_SIZE(threadLoad);
 		int grpId = STATIC_LOAD_GROUP(threadLoad);	
+		if (nid == 0) {
+			synId = 0; // NS addition
+		}
 		
 		if ((threadIdx.x < lastId) && (nid < networkConfigGPU.numN)) {
 			unsigned int offset = runtimeDataGPU.cumulativePre[nid];
