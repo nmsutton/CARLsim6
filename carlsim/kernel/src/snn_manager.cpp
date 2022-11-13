@@ -51,6 +51,7 @@
 #include <snn.h>
 #include <sstream>
 #include <algorithm>
+#include <map> // NS addition
 
 #include <connection_monitor.h>
 #include <connection_monitor_core.h>
@@ -63,6 +64,7 @@
 
 #include <spike_buffer.h>
 #include <error_code.h>
+
 
 // \FIXME what are the following for? why were they all the way at the bottom of this file?
 
@@ -3387,9 +3389,7 @@ void SNN::allocateManagerRuntimeData() {
 	memset(managerRuntimeData.gGABAb, 0, sizeof(float) * managerRTDSize.glbNumNReg);
 
 #ifdef JK_CA3_SNN
-	// ns added
-	// TODO: add auto-sizing of arrays
-	//managerRuntimeData.AMPA_syn_i = new float[MAX_CONN_PER_SNN];
+	// NS addition
 	managerRuntimeData.AMPA_syn_i = new float[managerRTDSize.maxNumPreSynNet];
 	managerRuntimeData.NMDA_d_syn_i = new float[managerRTDSize.maxNumPreSynNet];
 	managerRuntimeData.NMDA_r_syn_i = new float[managerRTDSize.maxNumPreSynNet];
@@ -7139,6 +7139,59 @@ int SNN::loadSimulation_internal(bool onlyPlastic) {
 	return 0;
 }
 
+void SNN::findSynIds(int netId) {
+	// NS addition
+	// This function creates short and long sized ids for mapping [preId,postId] to unique synId.
+	// There is a unique synId for every synapse in the simulation.
+	// TODO: this does not yet handle different netIds to assign preIds and postIds?
+	// That could be checked.
+	int postId, preId;
+	int synIdShort = 0;
+	for (int lGrpId = 0; lGrpId < networkConfigs[netId].numGroups; lGrpId++) {
+		for (int lNId = groupConfigs[netId][lGrpId].lStartN; lNId <= groupConfigs[netId][lGrpId].lEndN; lNId++) {
+			postId = lNId;
+			/*unsigned int offset = runtimeData[netId].cumulativePre[lNId];
+			for (int j = 0; j < runtimeData[netId].Npre[lNId]; j++) {
+				preId = offset + j;
+
+			}*/
+			unsigned int offset = managerRuntimeData.cumulativePre[lNId];
+			for (int j = 0; j < managerRuntimeData.Npre[lNId]; j++) {
+				preId = offset + j;
+				synIdShortToLong.insert(std::make_pair(synIdShort, ((postId*MAX_NUM_PRE_SYN)+preId)));
+				synIdLongToShort.insert(std::make_pair(((postId*MAX_NUM_PRE_SYN)+preId), synIdShort));
+				//printf("preId: %d postId: %d\n",preId,postId);
+				synIdShort++;
+			}
+			//int offset = runtimeData[netId].cumulativePre[lNId];
+			//unsigned int offset = managerRuntimeData.cumulativePre[lNId];
+			//int num_pre = managerRuntimeData.Npre[lNId];
+			//printf("postId: %d offset: %d\n",postId,offset);			
+		}
+	}
+}
+
+int SNN::getSynIdPre(int synIdShort) {
+	// NS addition
+	// Get synapse id - return preId
+
+	return synIdShortToLong[synIdShort] % MAX_NUM_PRE_SYN;
+}
+
+int SNN::getSynIdPost(int synIdShort) {
+	// NS addition
+	// Get synapse id - return postId
+
+	return synIdShortToLong[synIdShort] / MAX_NUM_PRE_SYN;
+}
+
+int SNN::getSynIdL2S(int preId, int postId) {
+	// NS addition
+	// Get synapse id - long to short
+
+	return synIdLongToShort[(postId*MAX_NUM_PRE_SYN)+preId];
+}
+
 void SNN::generateRuntimeSNN() {
 	// 1. genearte configurations for the simulation
 	// generate (copy) group configs from groupPartitionLists[]
@@ -7222,6 +7275,8 @@ void SNN::generateRuntimeSNN() {
 			resetSynapse(netId, false);
 
 			allocateSNN(netId);
+
+			findSynIds(netId); // NS addition
 		}
 	}
 
@@ -7526,7 +7581,7 @@ void SNN::deleteManagerRuntimeData() {
 	managerRuntimeData.gAMPA=NULL; managerRuntimeData.gNMDA=NULL; managerRuntimeData.gNMDA_r=NULL; managerRuntimeData.gNMDA_d=NULL;
 	managerRuntimeData.gGABAa=NULL; managerRuntimeData.gGABAb=NULL; managerRuntimeData.gGABAb_r=NULL; managerRuntimeData.gGABAb_d=NULL;
 	#ifdef JK_CA3_SNN
-		// ns added
+		// NS addition
 		if (managerRuntimeData.AMPA_syn_i!=NULL) delete[] managerRuntimeData.AMPA_syn_i;
 		if (managerRuntimeData.NMDA_d_syn_i!=NULL) delete[] managerRuntimeData.NMDA_d_syn_i;
 		if (managerRuntimeData.NMDA_r_syn_i!=NULL) delete[] managerRuntimeData.NMDA_r_syn_i;
