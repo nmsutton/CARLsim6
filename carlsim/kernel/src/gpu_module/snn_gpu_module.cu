@@ -4103,7 +4103,7 @@ void SNN::doSTPUpdateAndDecayCond_GPU(int netId) {
 
 	if (sim_with_stp || sim_with_conductances) {
 		kernel_STPInit<<<NUM_BLOCKS, NUM_THREADS>>>(simTimeMs, simTimeSec, simTime);
-		kernel_resetSynIdCounter<<<1, 1>>>();
+		kernel_resetSynIdCounter<<<1, 1>>>(); // NS addition
 		kernel_STPDecayConductances<<<NUM_BLOCKS, NUM_THREADS>>>(simTimeMs, simTimeSec, simTime);
 		kernel_STPUpdateAndDecayConductances<<<NUM_BLOCKS, NUM_THREADS>>>(simTimeMs, simTimeSec, simTime);
 		CUDA_GET_LAST_ERROR("STP update\n");
@@ -4262,7 +4262,7 @@ void SNN::globalStateUpdate_C_GPU(int netId) {
 	assert(runtimeData[netId].memType == GPU_MEM);
 	checkAndSetGPUDevice(netId);
 
-	kernel_resetSynIdCounter<<<1, 1>>>();
+	kernel_resetSynIdCounter<<<1, 1>>>(); // NS addition
 	kernel_conductanceUpdate << <NUM_BLOCKS, NUM_THREADS >> > (simTimeMs, simTimeSec, simTime);
 	CUDA_GET_LAST_ERROR("kernel_conductanceUpdate failed");
 
