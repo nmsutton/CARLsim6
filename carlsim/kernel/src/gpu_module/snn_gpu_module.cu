@@ -934,32 +934,32 @@ __global__ void kernel_conductanceUpdate (int simTimeMs, int simTimeSec, int sim
 							if (networkConfigGPU.sim_with_conductances) {
 								short int connId = runtimeDataGPU.connIdsPreIdx[cum_pos + wtId];
 								if (type & TARGET_AMPA)
-									AMPA_sum += change * d_mulSynFast[connId];
+									AMPA_sum = change * d_mulSynFast[connId]; // NS addition; changed += to = for receptors here
 								// 								AMPA_sum += change * d_mulSynFast[connId] * runtimeDataGPU.stp_dAMPA[pos];
 								if (type & TARGET_NMDA) {
 									if (networkConfigGPU.sim_with_NMDA_rise) {
 										// 									NMDA_r_sum += change * d_mulSynSlow[connId] * networkConfigGPU.sNMDA;
 										// 									NMDA_d_sum += change * d_mulSynSlow[connId] * networkConfigGPU.sNMDA;
-										NMDA_r_sum += change * d_mulSynSlow[connId] * runtimeDataGPU.stp_sNMDA[pos];
-										NMDA_d_sum += change * d_mulSynSlow[connId] * runtimeDataGPU.stp_sNMDA[pos];
+										NMDA_r_sum = change * d_mulSynSlow[connId] * runtimeDataGPU.stp_sNMDA[pos];
+										NMDA_d_sum = change * d_mulSynSlow[connId] * runtimeDataGPU.stp_sNMDA[pos];
 									}
 									else {
-										NMDA_sum += change * d_mulSynSlow[connId];
+										NMDA_sum = change * d_mulSynSlow[connId];
 										// 									NMDA_sum += change * d_mulSynSlow[connId] * runtimeDataGPU.stp_dNMDA[pos];
 									}
 								}
 								if (type & TARGET_GABAa)
-									GABAa_sum += change * d_mulSynFast[connId];	// wt should be negative for GABAa and GABAb
+									GABAa_sum = change * d_mulSynFast[connId];	// wt should be negative for GABAa and GABAb
 	// 								GABAa_sum += change * d_mulSynFast[connId] * runtimeDataGPU.stp_dGABAa[pos];	// wt should be negative for GABAa and GABAb
 								if (type & TARGET_GABAb) {						// but that is dealt with below
 									if (networkConfigGPU.sim_with_GABAb_rise) {
 										// 									GABAb_r_sum += change * d_mulSynSlow[connId] * networkConfigGPU.sGABAb;
 										// 									GABAb_d_sum += change * d_mulSynSlow[connId] * networkConfigGPU.sGABAb;
-										GABAb_r_sum += change * d_mulSynSlow[connId] * runtimeDataGPU.stp_sGABAb[pos];
-										GABAb_d_sum += change * d_mulSynSlow[connId] * runtimeDataGPU.stp_sGABAb[pos];
+										GABAb_r_sum = change * d_mulSynSlow[connId] * runtimeDataGPU.stp_sGABAb[pos];
+										GABAb_d_sum = change * d_mulSynSlow[connId] * runtimeDataGPU.stp_sGABAb[pos];
 									}
 									else {
-										GABAb_sum += change * d_mulSynSlow[connId];
+										GABAb_sum = change * d_mulSynSlow[connId];
 										// 									GABAb_sum += change * d_mulSynSlow[connId] * runtimeDataGPU.stp_dGABAb[pos];
 									}
 								}
