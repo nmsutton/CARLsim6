@@ -1802,9 +1802,9 @@ __global__ void kernel_groupStateUpdate(int simTime) {
 __global__ void kernel_STPInit (int t, int sec, int simTime) {
 	// NS addition
 	// reference: https://medium.com/@avinkavish/introduction-to-parallel-programming-with-cuda-and-c-ff2ca339aca
-	const int totConns = MAX_CONN_PER_SNN;
+	const int totConns = sizeof(tot_ampa)/sizeof(tot_ampa[0]);
 	int globalIdx = blockIdx.x * blockDim.x + threadIdx.x;
-	while (globalIdx < MAX_CONN_PER_SNN) {
+	while (globalIdx < totConns) {
 		tot_ampa[globalIdx]=0;tot_nmdad[globalIdx]=0;tot_nmdar[globalIdx]=0;
 		tot_gabaa[globalIdx]=0;tot_gababd[globalIdx]=0;tot_gababr[globalIdx]=0;
 
