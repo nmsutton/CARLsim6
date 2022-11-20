@@ -1265,6 +1265,7 @@ int SNN::runNetwork(int _nsec, int _nmsec, bool printRunSummary) {
 	CUDA_START_TIMER(timer);
 #endif
 
+
 	//KERNEL_INFO("Reached the advSimStep loop!");
 
 	// if nsec=0, simTimeMs=10, we need to run the simulator for 10 timeStep;
@@ -3395,12 +3396,14 @@ void SNN::allocateManagerRuntimeData() {
 	managerRuntimeData.GABAa_syn_i = new float[managerRTDSize.maxNumPreSynNet];
 	managerRuntimeData.GABAb_d_syn_i = new float[managerRTDSize.maxNumPreSynNet];
 	managerRuntimeData.GABAb_r_syn_i = new float[managerRTDSize.maxNumPreSynNet];	
+	managerRuntimeData.grpTotN = new int[100]; // assuming max number of neuron groups is 10. TODO: find variable storing this rather than hardcoding 100 here.
 	memset(managerRuntimeData.AMPA_syn_i, 0, sizeof(float) * managerRTDSize.maxNumPreSynNet);
 	memset(managerRuntimeData.NMDA_d_syn_i, 0, sizeof(float) * managerRTDSize.maxNumPreSynNet);
 	memset(managerRuntimeData.NMDA_r_syn_i, 0, sizeof(float) * managerRTDSize.maxNumPreSynNet);
 	memset(managerRuntimeData.GABAa_syn_i, 0, sizeof(float) * managerRTDSize.maxNumPreSynNet);
 	memset(managerRuntimeData.GABAb_d_syn_i, 0, sizeof(float) * managerRTDSize.maxNumPreSynNet);
 	memset(managerRuntimeData.GABAb_r_syn_i, 0, sizeof(float) * managerRTDSize.maxNumPreSynNet);
+	memset(managerRuntimeData.grpTotN, 0, sizeof(int) * 100);
 #endif
 
 	// allocate neuromodulators and their assistive buffers
@@ -7532,9 +7535,11 @@ void SNN::deleteManagerRuntimeData() {
 		if (managerRuntimeData.GABAa_syn_i!=NULL) delete[] managerRuntimeData.GABAa_syn_i;
 		if (managerRuntimeData.GABAb_d_syn_i!=NULL) delete[] managerRuntimeData.GABAb_d_syn_i;
 		if (managerRuntimeData.GABAb_r_syn_i!=NULL) delete[] managerRuntimeData.GABAb_r_syn_i;	
+		if (managerRuntimeData.grpTotN!=NULL) delete[] managerRuntimeData.grpTotN;	
 		managerRuntimeData.AMPA_syn_i=NULL; managerRuntimeData.NMDA_d_syn_i=NULL;
 		managerRuntimeData.NMDA_r_syn_i=NULL; managerRuntimeData.GABAa_syn_i=NULL;
 		managerRuntimeData.GABAb_d_syn_i=NULL; managerRuntimeData.GABAb_r_syn_i=NULL;
+		managerRuntimeData.grpTotN=NULL;
 	#endif
 
 	if (managerRuntimeData.stpu!=NULL) delete[] managerRuntimeData.stpu;

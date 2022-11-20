@@ -2561,6 +2561,7 @@ void SNN::copyAllSynI(int netId, int lGrpId, RuntimeData* dest, RuntimeData* src
 	if(allocateMem) {
 		//dest->gAMPA = new float[length];
 		dest->AMPA_syn_i = new float[managerRTDSize.maxNumPreSynNet];
+		//printf("managerRTDSize.maxNumPreSynNet:%d\n",managerRTDSize.maxNumPreSynNet);
 		dest->NMDA_d_syn_i = new float[managerRTDSize.maxNumPreSynNet];
 		if (sim_with_NMDA_rise) {
 			dest->NMDA_r_syn_i = new float[managerRTDSize.maxNumPreSynNet];
@@ -2570,6 +2571,7 @@ void SNN::copyAllSynI(int netId, int lGrpId, RuntimeData* dest, RuntimeData* src
 		if (sim_with_GABAb_rise) {
 			dest->GABAb_r_syn_i = new float[managerRTDSize.maxNumPreSynNet];
 		}
+		dest->grpTotN = new int[100]; // cumulative total neurons relative to group numbers. assumes max number of neuron groups is 10.
 	}
 	memcpy(&dest->AMPA_syn_i, &src->AMPA_syn_i, sizeof(float) * managerRTDSize.maxNumPreSynNet);
 	memcpy(&dest->NMDA_d_syn_i, &src->NMDA_d_syn_i, sizeof(float) * managerRTDSize.maxNumPreSynNet);
@@ -2581,6 +2583,7 @@ void SNN::copyAllSynI(int netId, int lGrpId, RuntimeData* dest, RuntimeData* src
 	if (sim_with_GABAb_rise) {
 		memcpy(&dest->GABAb_r_syn_i, &src->GABAb_r_syn_i, sizeof(float) * managerRTDSize.maxNumPreSynNet);
 	}
+	memcpy(&dest->grpTotN, &src->grpTotN, sizeof(int) * 100);
 }
 
 /*!
