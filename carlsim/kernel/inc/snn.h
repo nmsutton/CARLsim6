@@ -1035,6 +1035,7 @@ private:
 	void doSTPUpdateAndDecayCond_GPU(int netId);
 	void deleteRuntimeData_GPU(int netId);		//!< deallocates all used data structures in snn_gpu.cu
 	void findFiring_GPU(int netId);
+	void setGrpTotN(int netId);
 	void globalStateUpdate_C_GPU(int netId);
 	void globalStateUpdate_N_GPU(int netId);
 	void globalStateUpdate_G_GPU(int netId);
@@ -1055,6 +1056,7 @@ private:
 	void doSTPUpdateAndDecayCond_GPU(int netId) { assert(false); }
 	void deleteRuntimeData_GPU(int netId) { assert(false); }		//!< deallocates all used data structures in snn_gpu.cu
 	void findFiring_GPU(int netId) { assert(false); }
+	void setGrpTotN(int netId);	
 	void globalStateUpdate_C_GPU(int netId) { assert(false); }
 	void globalStateUpdate_N_GPU(int netId) { assert(false); }
 	void globalStateUpdate_G_GPU(int netId) { assert(false); }

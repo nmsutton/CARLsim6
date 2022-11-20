@@ -2559,9 +2559,7 @@ void SNN::copyConductanceAMPA(int netId, int lGrpId, RuntimeData* dest, RuntimeD
 void SNN::copyAllSynI(int netId, int lGrpId, RuntimeData* dest, RuntimeData* src, bool allocateMem, int destOffset) {
 	// NS addition
 	if(allocateMem) {
-		//dest->gAMPA = new float[length];
 		dest->AMPA_syn_i = new float[managerRTDSize.maxNumPreSynNet];
-		//printf("managerRTDSize.maxNumPreSynNet:%d\n",managerRTDSize.maxNumPreSynNet);
 		dest->NMDA_d_syn_i = new float[managerRTDSize.maxNumPreSynNet];
 		if (sim_with_NMDA_rise) {
 			dest->NMDA_r_syn_i = new float[managerRTDSize.maxNumPreSynNet];

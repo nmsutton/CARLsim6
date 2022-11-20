@@ -970,31 +970,14 @@ __global__ void kernel_conductanceUpdate (int simTimeMs, int simTimeSec, int sim
 								AMPA_sum += change;
 							}
 							// NS addition
+							// find synId
 							short int postGrpId = runtimeDataGPU.grpIds[postNId];
-							/*int post_gn = 0; // prior post synaptic neuron's group neuron counts
-							for (int g_i = 0; g_i < postGrpId; g_i++) {
-								post_gn = post_gn + 50;
-							}
-							int pre_gn = 0; // prior pre synaptic neuron's group neuron counts
-							for (int g_i = 0; g_i < preGrpId; g_i++) {
-								pre_gn = pre_gn + 50;
-							}
-							int synId = (postGrpId*(50*50))+((postNId-post_gn)*50)+(preNId-pre_gn);*/
 							int grpTotInd = (postGrpId*10)+preGrpId;
 							int priorNs = runtimeDataGPU.grpTotN[grpTotInd];
 							int startPreInd = groupConfigsGPU[preGrpId].gStartN;
 							int synId = priorNs + (preNId - startPreInd);
+							// add current levels
 							runtimeDataGPU.AMPA_syn_i[synId] += AMPA_sum;
-							//if (AMPA_sum > 0.1 && postNId == 100) {
-							if (simTimeMs == 242) {
-								//runtimeDataGPU.grpTotN[0] = 10;
-								//printf("%d %d %d\n",simTimeMs,preGrpId,groupConfigsGPU[2].gStartN);
-							}
-							if (AMPA_sum > 0.1 && postNId==100) {
-								//printf("t: %d postNId: %d preNId: %d synId: %d synId2: %d postGrpId: %d pgn %d ampa: %f\n",simTimeMs,postNId,preNId,synId,(postGrpId*45)+((postNId-pgn)*45)+preNId,postGrpId,pgn,AMPA_sum);
-								//printf("%d\n",gridDim.x);
-								//printf("runtimeDataGPU.grpTotN: %d\n",runtimeDataGPU.grpTotN[50]);
-							}
 							if (networkConfigGPU.sim_with_NMDA_rise) {
 								runtimeDataGPU.NMDA_d_syn_i[synId] += NMDA_d_sum;
 								runtimeDataGPU.NMDA_r_syn_i[synId] += NMDA_r_sum;
@@ -1009,16 +992,7 @@ __global__ void kernel_conductanceUpdate (int simTimeMs, int simTimeSec, int sim
 							}
 							else {
 								runtimeDataGPU.GABAb_d_syn_i[synId] += GABAb_sum;
-							}
-							//printf("synId: %d preNId %d postNId: %d synId2:%d\n",synId,preNId,postNId,(postNId*MAX_NUM_POST_SYN)+preNId);
-							//printf("synId2:%d\n",(postNId*MAX_NUM_POST_SYN)+preNId);
-							//__syncthreads();
-							//test[0][0] = 1;
-							//printf("%f\n",test[0][0]);
-							//runtimeDataGPU.synId[0] = runtimeDataGPU.synId[0] + 1;
-							//synId++;
-							//printf("%d %d\n",runtimeDataGPU.synId[0],synId);
-							//__syncthreads();							
+							}						
 						}
 					}
 #else
@@ -1845,13 +1819,8 @@ __global__ void kernel_STPInit (int t, int sec, int simTime) {
 	}
 }
 
-__global__ void kernel_resetSynIdCounter () {
-	//synId = 0; // NS addition
-	//__syncthreads();
-}
-
 __global__ void kernel_setGrpTotN (int* grpTotN) {
-
+	// NS addition
 	for (int i = 0; i < 100; i++) {
 		runtimeDataGPU.grpTotN[i] = grpTotN[i];
 	}
@@ -1880,24 +1849,15 @@ __global__ void kernel_STPDecayConductances (int t, int sec, int simTime) {
 					int pre_id = lSId;
 					int post_id = nid;
 					int connId = runtimeDataGPU.connIdsPreIdx[lSId];
-					//printf("%d %d %d %d\n",t,lSId,nid,connId);
 
+					// find synId
 					short int postGrpId = runtimeDataGPU.grpIds[post_id];
 					short int preGrpId = runtimeDataGPU.grpIds[pre_id];
-					/*int post_gn = 0; // prior post synaptic neuron's group neuron counts
-					for (int g_i = 0; g_i < postGrpId; g_i++) {
-						post_gn = post_gn + 50;
-					}
-					int pre_gn = 0; // prior pre synaptic neuron's group neuron counts
-					for (int g_i = 0; g_i < preGrpId; g_i++) {
-						pre_gn = pre_gn + 50;
-					}
-					int synId = (postGrpId*(50*50))+((post_id-post_gn)*50)+(pre_id-pre_gn);*/
 					int grpTotInd = (postGrpId*10)+preGrpId;
 					int priorNs = runtimeDataGPU.grpTotN[grpTotInd];
 					int startPreInd = groupConfigsGPU[preGrpId].gStartN;
 					int synId = priorNs + (pre_id - startPreInd);
-
+					// apply stp_d
 					runtimeDataGPU.AMPA_syn_i[synId] *= runtimeDataGPU.stp_dAMPA[pre_id];
 					tot_ampa[post_id] += runtimeDataGPU.AMPA_syn_i[synId];
 					runtimeDataGPU.NMDA_d_syn_i[synId] *= runtimeDataGPU.stp_dNMDA[pre_id];
@@ -1914,15 +1874,6 @@ __global__ void kernel_STPDecayConductances (int t, int sec, int simTime) {
 						runtimeDataGPU.GABAb_r_syn_i[synId] *= runtimeDataGPU.stp_rGABAb[pre_id];
 						tot_gababr[post_id] -= runtimeDataGPU.GABAb_r_syn_i[synId];
 					}
-					if (runtimeDataGPU.AMPA_syn_i[synId] > 0.1) {
-						//printf("%d %d %d %f\n",t,pre_id,post_id,runtimeDataGPU.AMPA_syn_i[synId]); //nsprint
-						//printf("%d pre:%d post:%d postGrpId:%d synId:%d syn_i:%f\n",t,pre_id,post_id,postGrpId,synId,runtimeDataGPU.AMPA_syn_i[synId]); //nsprint
-					}
-					//if (nid > 127) {
-					if (nid == 120 && tot_ampa[post_id] > 0.1) {
-						//printf("*** t:%d post_id: %d synId: %d tot_ampa[post_id]:%f syn_i:%f ***\n",t,post_id,synId,tot_ampa[post_id],runtimeDataGPU.AMPA_syn_i[synId]);
-					}					
-					//synId++;
 				}
 			}			
 		}
@@ -4178,7 +4129,6 @@ void SNN::doSTPUpdateAndDecayCond_GPU(int netId) {
 
 	if (sim_with_stp || sim_with_conductances) {
 		kernel_STPInit<<<NUM_BLOCKS, NUM_THREADS>>>(simTimeMs, simTimeSec, simTime);
-		kernel_resetSynIdCounter<<<1, 1>>>(); // NS addition
 		kernel_STPDecayConductances<<<NUM_BLOCKS, NUM_THREADS>>>(simTimeMs, simTimeSec, simTime);
 		kernel_STPUpdateAndDecayConductances<<<NUM_BLOCKS, NUM_THREADS>>>(simTimeMs, simTimeSec, simTime);
 		CUDA_GET_LAST_ERROR("STP update\n");
@@ -4333,17 +4283,15 @@ void SNN::deleteRuntimeData_GPU(int netId) {
 	runtimeData[netId].randNum = NULL;
 }
 
-void SNN::globalStateUpdate_C_GPU(int netId) {
-	assert(runtimeData[netId].memType == GPU_MEM);
-	checkAndSetGPUDevice(netId);
+void SNN::setGrpTotN(int netId) {
+	// NS addition. Counts of neurons prior to given pre and post group ids are stored in 
+	// a grpTotN array. This is later used for synId identification.
 
-	if (simTimeMs == 1) {
-		// count synapses based on groups; NS addition
+	if (simTimeMs == 0) { // only need to count at first timestep. assumes neuron count totals will not change.
+		// count synapses based on groups
 		ConnectConfig tmpConnConfig;
 		int grp_pre[100], grp_post[100], grp_tot[100], grpTotN[100];
 		int grp_i = 0, syn_grp_ctr = 0, pre_i = 0, post_i = 0;
-		//int tot_grp = networkConfigs[0].numGroups; // total groups
-		//int tot_syn = glbNetworkConfig.numSynNet; // total synapses
 
 		// init
 		for (int i = 0; i < 100; i++) {
@@ -4355,37 +4303,21 @@ void SNN::globalStateUpdate_C_GPU(int netId) {
 			grp_pre[syn_grp_ctr] = connIt->grpSrc;
 			grp_post[syn_grp_ctr] = connIt->grpDest;
 			grp_tot[syn_grp_ctr] = connIt->numberOfConnections;
-			//printf("syn:%d grp_pre:%d grp_post:%d grp_tot:%d\n",syn_grp_ctr,grp_pre[syn_grp_ctr],grp_post[syn_grp_ctr],grp_tot[syn_grp_ctr]);			
 			syn_grp_ctr++;
 		}
 		for (int i = 0; i < 100; i++) {
-			if (i > syn_grp_ctr) {
-				grp_pre[i] = -1;
-				grp_post[i] = -1;
-				grp_tot[i] = -1;
-			}
+			if (i > syn_grp_ctr) {grp_pre[i] = -1; grp_post[i] = -1; grp_tot[i] = -1;}
 		}
+
 		// sort by group numbers
 		for (int i = 0; i < syn_grp_ctr; i++) { 
 			for (int j = 0; j < 100; j++) { // grpTotN index
 				post_i = j / 10;
 				pre_i = j % 10;				
 				grp_i = (grp_post[i]*10) + grp_pre[i];
-				if (j >= grp_i) {
-					grpTotN[j] += grp_tot[i];
-				}			
-				//printf("i:%d j:%d post_i:%d pre_i:%d grp_i:%d grp_tot:%d grpTotN:%d\n",i,j,post_i,pre_i,grp_i,grp_tot[i],grpTotN[j]);				
+				if (j >= grp_i) {grpTotN[j] += grp_tot[i];}
 			}
 		}		
-		// test print
-		//printf("test print\n");
-		//printf("size:%d\n",syn_grp_ctr);
-		for (int i = 0; i < 100; i++) {
-			post_i = i / 10;
-			pre_i = i % 10;				
-			//printf("i:%d post:%d pre:%d tot:%d\n",i,post_i,pre_i,grpTotN[i]);
-		}
-		printf("\n");
 
 		// copy to GPU memory		
 		int* d_grpTotN;
@@ -4393,8 +4325,13 @@ void SNN::globalStateUpdate_C_GPU(int netId) {
 	    cudaMemcpy(d_grpTotN, grpTotN, sizeof(int)*100, cudaMemcpyHostToDevice);
 		kernel_setGrpTotN<<<1, 1>>>(d_grpTotN);
 	}
+}
 
-	kernel_resetSynIdCounter<<<1, 1>>>(); // NS addition
+void SNN::globalStateUpdate_C_GPU(int netId) {
+	assert(runtimeData[netId].memType == GPU_MEM);
+	checkAndSetGPUDevice(netId);
+
+	setGrpTotN(netId);
 	kernel_conductanceUpdate << <NUM_BLOCKS, NUM_THREADS >> > (simTimeMs, simTimeSec, simTime);
 	CUDA_GET_LAST_ERROR("kernel_conductanceUpdate failed");
 
