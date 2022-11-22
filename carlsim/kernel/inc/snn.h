@@ -1170,6 +1170,7 @@ private:
 	void convertExtSpikesD1_CPU(int netId, int startIdx, int endIdx, int GtoLOffset);
 	void doCurrentUpdateD2_CPU(int netId);
 	void doCurrentUpdateD1_CPU(int netId);
+	void test1(int netId);
 	void doSTPUpdateAndDecayCond_CPU(int netId);
 	void deleteRuntimeData_CPU(int netId);
 	void findFiring_CPU(int netId);
@@ -1186,6 +1187,7 @@ private:
 	void* convertExtSpikesD1_CPU(int netId, int startIdx, int endIdx, int GtoLOffset);
 	void* doCurrentUpdateD2_CPU(int netId);
 	void* doCurrentUpdateD1_CPU(int netId);
+	void test1(int netId);
 	void* doSTPUpdateAndDecayCond_CPU(int netId);
 	void* deleteRuntimeData_CPU(int netId);
 	void* findFiring_CPU(int netId);

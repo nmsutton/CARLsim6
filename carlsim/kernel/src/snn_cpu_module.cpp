@@ -469,6 +469,19 @@ void SNN::copyExtFiringTable(int netId) {
 	}
 #endif
 
+void SNN::test1(int netId) {
+	// NS addition
+	for (int lGrpId = 0; lGrpId < networkConfigs[netId].numGroups; lGrpId++) {
+		for (int lNId = groupConfigs[netId][lGrpId].lStartN; lNId <= groupConfigs[netId][lGrpId].lEndN; lNId++) {
+			unsigned int offset = runtimeData[netId].cumulativePre[lNId];
+			for (int j = 0; j < runtimeData[netId].Npre[lNId]; j++) {
+				int lSId = offset + j;
+				printf("%d %d\n",lNId,lSId);
+			}
+		}
+	}	
+}
+
 #ifdef __NO_PTHREADS__
 	void SNN::doSTPUpdateAndDecayCond_CPU(int netId) {
 #else // POSIX
@@ -2570,6 +2583,9 @@ void SNN::copyAllSynI(int netId, int lGrpId, RuntimeData* dest, RuntimeData* src
 			dest->GABAb_r_syn_i = new float[managerRTDSize.maxNumPreSynNet];
 		}
 		dest->grpTotN = new int[100]; // cumulative total neurons relative to group numbers. assumes max number of neuron groups is 10.
+		dest->synIsPreId = new int[managerRTDSize.maxNumPreSynNet];
+		dest->synIsPostId = new int[managerRTDSize.maxNumPostSynNet];
+		dest->numSyn = new int();
 	}
 	memcpy(&dest->AMPA_syn_i, &src->AMPA_syn_i, sizeof(float) * managerRTDSize.maxNumPreSynNet);
 	memcpy(&dest->NMDA_d_syn_i, &src->NMDA_d_syn_i, sizeof(float) * managerRTDSize.maxNumPreSynNet);
@@ -2582,6 +2598,9 @@ void SNN::copyAllSynI(int netId, int lGrpId, RuntimeData* dest, RuntimeData* src
 		memcpy(&dest->GABAb_r_syn_i, &src->GABAb_r_syn_i, sizeof(float) * managerRTDSize.maxNumPreSynNet);
 	}
 	memcpy(&dest->grpTotN, &src->grpTotN, sizeof(int) * 100);
+	memcpy(&dest->synIsPreId, &src->synIsPreId, sizeof(int) * managerRTDSize.maxNumPreSynNet);
+	memcpy(&dest->synIsPostId, &src->synIsPostId, sizeof(int) * managerRTDSize.maxNumPostSynNet);
+	memcpy(&dest->numSyn, &src->numSyn, sizeof(int));
 }
 
 /*!

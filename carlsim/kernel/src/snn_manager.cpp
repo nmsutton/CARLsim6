@@ -2766,7 +2766,7 @@ void SNN::doSTPUpdateAndDecayCond() {
 		cpu_set_t cpus;
 		ThreadStruct argsThreadRoutine[numCores + 1]; // same as above, +1 array size
 		int threadCount = 0;
-	#endif
+	#endif		
 
 	for (int netId = 0; netId < MAX_NET_PER_SNN; netId++) {
 		if (!groupPartitionLists[netId].empty()) {
@@ -3397,6 +3397,9 @@ void SNN::allocateManagerRuntimeData() {
 	managerRuntimeData.GABAb_d_syn_i = new float[managerRTDSize.maxNumPreSynNet];
 	managerRuntimeData.GABAb_r_syn_i = new float[managerRTDSize.maxNumPreSynNet];	
 	managerRuntimeData.grpTotN = new int[100]; // assuming max number of neuron groups is 10. TODO: find variable storing this rather than hardcoding 100 here.
+	managerRuntimeData.synIsPreId = new int[managerRTDSize.maxNumPreSynNet];
+	managerRuntimeData.synIsPostId = new int[managerRTDSize.maxNumPostSynNet];
+	managerRuntimeData.numSyn = new int;
 	memset(managerRuntimeData.AMPA_syn_i, 0, sizeof(float) * managerRTDSize.maxNumPreSynNet);
 	memset(managerRuntimeData.NMDA_d_syn_i, 0, sizeof(float) * managerRTDSize.maxNumPreSynNet);
 	memset(managerRuntimeData.NMDA_r_syn_i, 0, sizeof(float) * managerRTDSize.maxNumPreSynNet);
@@ -3404,6 +3407,9 @@ void SNN::allocateManagerRuntimeData() {
 	memset(managerRuntimeData.GABAb_d_syn_i, 0, sizeof(float) * managerRTDSize.maxNumPreSynNet);
 	memset(managerRuntimeData.GABAb_r_syn_i, 0, sizeof(float) * managerRTDSize.maxNumPreSynNet);
 	memset(managerRuntimeData.grpTotN, 0, sizeof(int) * 100);
+	memset(managerRuntimeData.synIsPreId, 0, sizeof(int) * managerRTDSize.maxNumPreSynNet);
+	memset(managerRuntimeData.synIsPostId, 0, sizeof(int) * managerRTDSize.maxNumPostSynNet);
+	memset(managerRuntimeData.numSyn, 0, sizeof(int));	
 #endif
 
 	// allocate neuromodulators and their assistive buffers
@@ -7536,10 +7542,14 @@ void SNN::deleteManagerRuntimeData() {
 		if (managerRuntimeData.GABAb_d_syn_i!=NULL) delete[] managerRuntimeData.GABAb_d_syn_i;
 		if (managerRuntimeData.GABAb_r_syn_i!=NULL) delete[] managerRuntimeData.GABAb_r_syn_i;	
 		if (managerRuntimeData.grpTotN!=NULL) delete[] managerRuntimeData.grpTotN;	
+		if (managerRuntimeData.synIsPreId!=NULL) delete[] managerRuntimeData.synIsPreId;
+		if (managerRuntimeData.synIsPostId!=NULL) delete[] managerRuntimeData.synIsPostId;
+		if (managerRuntimeData.numSyn!=NULL) delete[] managerRuntimeData.numSyn;
 		managerRuntimeData.AMPA_syn_i=NULL; managerRuntimeData.NMDA_d_syn_i=NULL;
 		managerRuntimeData.NMDA_r_syn_i=NULL; managerRuntimeData.GABAa_syn_i=NULL;
 		managerRuntimeData.GABAb_d_syn_i=NULL; managerRuntimeData.GABAb_r_syn_i=NULL;
-		managerRuntimeData.grpTotN=NULL;
+		managerRuntimeData.grpTotN=NULL; managerRuntimeData.synIsPreId=NULL; 
+		managerRuntimeData.synIsPostId=NULL; managerRuntimeData.numSyn=NULL;
 	#endif
 
 	if (managerRuntimeData.stpu!=NULL) delete[] managerRuntimeData.stpu;
