@@ -1896,8 +1896,31 @@ __device__ void kernel_findSynId (int pre_id, int post_id) {
 __global__ void kernel_STPDecayConductances (int t, int sec, int simTime) {
 	// NS addition
 	// TODO: this could be coded more computationally efficiently
-	int postNIdStart, postNIdEnd, grpSize, postNId, preNId, cum_pos, n_pre;
+	int grpSize, preNId, cum_pos, n_pre;
 	SynInfo* preSynInfo;
+	const int totBuffers = loadBufferCount;
+
+	for (int bufPos = blockIdx.x; bufPos < totBuffers; bufPos += gridDim.x) {
+		int2 threadLoad = getStaticThreadLoad(bufPos);
+		int postNId = (STATIC_LOAD_START(threadLoad) + threadIdx.x);
+		int lastNId = STATIC_LOAD_SIZE(threadLoad);
+		int grpId = STATIC_LOAD_GROUP(threadLoad);
+		if ((threadIdx.x < lastNId) && (IS_REGULAR_NEURON(postNId, networkConfigGPU.numNReg, networkConfigGPU.numNPois))) {
+			cum_pos = runtimeDataGPU.cumulativePre[postNId];
+			n_pre = runtimeDataGPU.Npre[postNId];
+			//for (int j = 0; j < n_pre; cum_pos++, j++) {
+			for (int j = 0; j < n_pre; j++) {
+				preSynInfo = &(runtimeDataGPU.preSynapticIds[cum_pos+j]);
+				preNId = GET_CONN_NEURON_ID((*preSynInfo));
+				if (t==242) {
+					//printf("post:%d pre:%d\n",postNId,preNId);
+					//printf("%d %d\n",postNId,preNId);
+				}
+			}
+		}
+	}
+
+	int postNIdStart, postNIdEnd, postNId;
 
 	if (t==242 && blockIdx.x==0 && threadIdx.x==0) {
 		for (int gi = 0; gi < networkConfigGPU.numGroups; gi++) {
