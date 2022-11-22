@@ -830,6 +830,54 @@ __global__ 	void kernel_findFiring (int simTimeMs, int simTime) {
 
 //******************************** UPDATE CONDUCTANCES AND TOTAL SYNAPTIC CURRENT EVERY TIME STEP *****************************
 
+__global__ void kernel_testConnLoop (int simTimeMs, int simTimeSec, int simTime) {
+	// NS addition
+	int LOG_CURRENT_GROUP = 5;
+	__shared__ int sh_quickSynIdTable[256]; // Table for quick access
+	for (int i = 0; i < 256; i += blockDim.x) {
+		if ((i + threadIdx.x) < 256) {
+			sh_quickSynIdTable[i + threadIdx.x] = quickSynIdTableGPU[i + threadIdx.x];
+		}
+	}
+	__syncthreads();
+	const int totBuffers = loadBufferCount;
+	for (int bufPos = blockIdx.x; bufPos < totBuffers; bufPos += gridDim.x) {
+		int2 threadLoad = getStaticThreadLoad(bufPos);
+		int  postNId = STATIC_LOAD_START(threadLoad) + threadIdx.x;
+		int  lastNId = STATIC_LOAD_SIZE(threadLoad);
+		if ((threadIdx.x < lastNId) && (IS_REGULAR_NEURON(postNId, networkConfigGPU.numNReg, networkConfigGPU.numNPois))) {
+			int   lmt			 = runtimeDataGPU.Npre[postNId];
+			unsigned int cum_pos = runtimeDataGPU.cumulativePre[postNId];
+			for (int j = 0; (lmt) && (j <= ((lmt - 1) >> LOG_CURRENT_GROUP)); j++) {
+				uint32_t* tmp_I_set_p = getFiringBitGroupPtr(postNId, j);
+				uint32_t  tmp_I_set = *tmp_I_set_p;
+				int cnt = 0; // table lookup based find bits that are set
+				int tmp_I_cnt = 0;
+				while (tmp_I_set) {					
+					int k = (tmp_I_set >> (8 * cnt)) & 0xff;
+					if (k == 0) {cnt = cnt + 1;continue;}
+					int wt_i = sh_quickSynIdTable[k];
+					int wtId = (j * 32 + cnt * 8 + wt_i);
+					SynInfo synInfo = runtimeDataGPU.preSynapticIds[cum_pos + wtId];
+					uint32_t  preNId = GET_CONN_NEURON_ID(synInfo);
+					int pos = cum_pos + wtId;
+					if (simTimeMs == 242) {
+						//printf("%d\n",(unsigned int*)((char*)runtimeDataGPU.I_set+j*networkConfigGPU.I_setPitch)+postNId);
+						//printf("post: %d pre: %d cum_pos: %d wtId: %d tmp_I_set:%d k:%d cnt:%d wt_i:%d wtId:%d tmp_I_set_p:%d I_set:%d\n",postNId,preNId,cum_pos,wtId,tmp_I_set,k,cnt,wt_i,wtId,getFiringBitGroupPtr(postNId, j),runtimeDataGPU.I_set[10]);
+						//int synId = atomicAdd((int*)&runtimeDataGPU.numSyn[0],1);
+						//atomicExch((int*)&runtimeDataGPU.synIsPreId[synId], preNId);
+						//atomicExch((int*)&runtimeDataGPU.synIsPostId[synId], postNId);
+					}
+					tmp_I_cnt++;
+					tmp_I_set = tmp_I_set & (~(1 << (8 * cnt + wt_i)));
+				}
+				if(tmp_I_cnt) {*tmp_I_set_p = 0;}
+				__syncthreads();		
+			}
+		}
+	}
+}
+
 #define LOG_CURRENT_GROUP 5
 /*!
  * \brief Based on the bitvector used for indicating the presence of spike, the global conductance values are updated.
@@ -980,6 +1028,7 @@ __global__ void kernel_conductanceUpdate (int simTimeMs, int simTimeSec, int sim
 							runtimeDataGPU.AMPA_syn_i[synId] += AMPA_sum;
 							if (runtimeDataGPU.AMPA_syn_i[synId]>0.1) {
 								//printf("t:%d post:%d pre:%d synId:%d ampa:%f\n",simTimeMs,postNId,preNId,synId,runtimeDataGPU.AMPA_syn_i[synId]);
+								//printf("%d %d\n",postNId,preNId);
 							}
 							if (networkConfigGPU.sim_with_NMDA_rise) {
 								runtimeDataGPU.NMDA_d_syn_i[synId] += NMDA_d_sum;
@@ -1847,6 +1896,42 @@ __device__ void kernel_findSynId (int pre_id, int post_id) {
 __global__ void kernel_STPDecayConductances (int t, int sec, int simTime) {
 	// NS addition
 	// TODO: this could be coded more computationally efficiently
+	int postNIdStart, postNIdEnd, grpSize, postNId, preNId, cum_pos, n_pre;
+	SynInfo* preSynInfo;
+
+	if (t==242 && blockIdx.x==0 && threadIdx.x==0) {
+		for (int gi = 0; gi < networkConfigGPU.numGroups; gi++) {
+			postNIdStart = groupConfigsGPU[gi].lStartN;
+			postNIdEnd = groupConfigsGPU[gi].lEndN;
+			//printf("%d %d\n",gi,postNIdEnd-postNIdStart);
+			grpSize = (postNIdEnd-postNIdStart+1);
+			for (int i = 0; i < grpSize; i++) {
+				postNId = postNIdStart + i;
+				cum_pos = runtimeDataGPU.cumulativePre[postNId];
+				n_pre = runtimeDataGPU.Npre[postNId];
+				for (int j = 0; j < n_pre; cum_pos++, j++) {
+					preSynInfo = &(runtimeDataGPU.preSynapticIds[cum_pos]);
+					preNId = GET_CONN_NEURON_ID((*preSynInfo));
+					//printf("post:%d pre:%d\n",postNId,preNId);
+					//printf("%d %d\n",postNId,preNId);
+				}
+			}
+		}
+	}
+
+	/*for (int i = 0; i < runtimeDataGPU.numSyn[0]; i++) {
+		int preNId = runtimeDataGPU.synIsPreId[i];
+		int postNId = runtimeDataGPU.synIsPostId[i];
+		//printf("preNId:%d gsid:%d\n",preNId,synInfo.gsId);
+		//printf("%d %d\n",postNId,preNId);
+		int synId = -1;
+		for (int i = 0; i < runtimeDataGPU.numSyn[0]; i++) {
+		//for (int i = 0; i < 1000; i++) {
+			if (preNId == runtimeDataGPU.synIsPreId[i] && postNId == runtimeDataGPU.synIsPostId[i]) {
+				synId = i;
+			}
+		}
+	}*/
 
 	int i = blockIdx.x * blockDim.x + threadIdx.x;
 
@@ -4552,6 +4637,7 @@ void SNN::globalStateUpdate_C_GPU(int netId) {
 		kernel_getNumSyn<<<1, 1>>>();
 	}*/
 	kernel_resetNumSyn<<<1, 1>>>();
+	//kernel_testConnLoop << <NUM_BLOCKS, NUM_THREADS >> > (simTimeMs, simTimeSec, simTime);
 	kernel_conductanceUpdate << <NUM_BLOCKS, NUM_THREADS >> > (simTimeMs, simTimeSec, simTime);
 	CUDA_GET_LAST_ERROR("kernel_conductanceUpdate failed");
 
