@@ -2586,6 +2586,7 @@ void SNN::copyAllSynI(int netId, int lGrpId, RuntimeData* dest, RuntimeData* src
 		dest->synIsPreId = new int[managerRTDSize.maxNumPreSynNet];
 		dest->synIsPostId = new int[managerRTDSize.maxNumPostSynNet];
 		dest->numSyn = new int();
+		dest->numSynTmp = new int();
 	}
 	memcpy(&dest->AMPA_syn_i, &src->AMPA_syn_i, sizeof(float) * managerRTDSize.maxNumPreSynNet);
 	memcpy(&dest->NMDA_d_syn_i, &src->NMDA_d_syn_i, sizeof(float) * managerRTDSize.maxNumPreSynNet);
@@ -2601,6 +2602,7 @@ void SNN::copyAllSynI(int netId, int lGrpId, RuntimeData* dest, RuntimeData* src
 	memcpy(&dest->synIsPreId, &src->synIsPreId, sizeof(int) * managerRTDSize.maxNumPreSynNet);
 	memcpy(&dest->synIsPostId, &src->synIsPostId, sizeof(int) * managerRTDSize.maxNumPostSynNet);
 	memcpy(&dest->numSyn, &src->numSyn, sizeof(int));
+	memcpy(&dest->numSynTmp, &src->numSynTmp, sizeof(int));
 }
 
 /*!

@@ -713,14 +713,6 @@ typedef struct GroupConfigRT_s {
 
 } GroupConfigRT;
 
-typedef struct SynapseCurrent_s {
-	// NS addition
-	unsigned int pre_id;
-	unsigned int post_id;
-	float syn_i;
-
-} SynapseCurrent;
-
 typedef struct RuntimeData_s {
 	unsigned int spikeCountSec;   //!< the total number of spikes in 1 second, used in CPU_MODE currently
 	unsigned int spikeCountD1Sec; //!< the total number of spikes with axonal delay == 1 in 1 second, used in CPU_MODE currently	
@@ -791,6 +783,7 @@ typedef struct RuntimeData_s {
 	int* synIsPreId;
 	int* synIsPostId;
 	int* numSyn;
+	int* numSynTmp;
 #endif	
 
 	int* I_set; //!< an array of bits indicating which synapse got a spike
