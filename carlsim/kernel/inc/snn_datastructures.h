@@ -784,6 +784,7 @@ typedef struct RuntimeData_s {
 	int* synIsPostId;
 	int* numSyn;
 	int* numSynTmp;
+	int* numPostSyn;
 #endif	
 
 	int* I_set; //!< an array of bits indicating which synapse got a spike

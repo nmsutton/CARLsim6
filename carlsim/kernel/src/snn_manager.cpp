@@ -3401,6 +3401,7 @@ void SNN::allocateManagerRuntimeData() {
 	managerRuntimeData.synIsPostId = new int[managerRTDSize.maxNumPostSynNet];
 	managerRuntimeData.numSyn = new int;
 	managerRuntimeData.numSynTmp = new int;
+	managerRuntimeData.numPostSyn = new int[100000];
 	memset(managerRuntimeData.AMPA_syn_i, 0, sizeof(float) * managerRTDSize.maxNumPreSynNet);
 	memset(managerRuntimeData.NMDA_d_syn_i, 0, sizeof(float) * managerRTDSize.maxNumPreSynNet);
 	memset(managerRuntimeData.NMDA_r_syn_i, 0, sizeof(float) * managerRTDSize.maxNumPreSynNet);
@@ -3412,6 +3413,7 @@ void SNN::allocateManagerRuntimeData() {
 	memset(managerRuntimeData.synIsPostId, 0, sizeof(int) * managerRTDSize.maxNumPostSynNet);
 	memset(managerRuntimeData.numSyn, 0, sizeof(int));	
 	memset(managerRuntimeData.numSynTmp, 0, sizeof(int));	
+	memset(managerRuntimeData.numPostSyn, 0, sizeof(int) * 100000);
 #endif
 
 	// allocate neuromodulators and their assistive buffers
@@ -7548,12 +7550,13 @@ void SNN::deleteManagerRuntimeData() {
 		if (managerRuntimeData.synIsPostId!=NULL) delete[] managerRuntimeData.synIsPostId;
 		if (managerRuntimeData.numSyn!=NULL) delete[] managerRuntimeData.numSyn;
 		if (managerRuntimeData.numSynTmp!=NULL) delete[] managerRuntimeData.numSynTmp;
+		if (managerRuntimeData.numPostSyn!=NULL) delete[] managerRuntimeData.numPostSyn;
 		managerRuntimeData.AMPA_syn_i=NULL; managerRuntimeData.NMDA_d_syn_i=NULL;
 		managerRuntimeData.NMDA_r_syn_i=NULL; managerRuntimeData.GABAa_syn_i=NULL;
 		managerRuntimeData.GABAb_d_syn_i=NULL; managerRuntimeData.GABAb_r_syn_i=NULL;
 		managerRuntimeData.grpTotN=NULL; managerRuntimeData.synIsPreId=NULL; 
 		managerRuntimeData.synIsPostId=NULL; managerRuntimeData.numSyn=NULL;
-		managerRuntimeData.numSynTmp=NULL;
+		managerRuntimeData.numSynTmp=NULL; managerRuntimeData.numPostSyn=NULL;
 	#endif
 
 	if (managerRuntimeData.stpu!=NULL) delete[] managerRuntimeData.stpu;

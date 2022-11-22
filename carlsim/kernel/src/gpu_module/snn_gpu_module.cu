@@ -1021,13 +1021,33 @@ __global__ void kernel_conductanceUpdate (int simTimeMs, int simTimeSec, int sim
 								AMPA_sum += change;
 							}
 							// NS addition
-							int synId = atomicAdd((int*)&runtimeDataGPU.numSyn[0],1);
-							atomicExch((int*)&runtimeDataGPU.synIsPreId[synId], preNId);
-							atomicExch((int*)&runtimeDataGPU.synIsPostId[synId], postNId);
+							int synId = 0;
+							//int synId = atomicAdd((int*)&runtimeDataGPU.numSyn[0],1);
+							//atomicExch((int*)&runtimeDataGPU.synIsPreId[synId], preNId);
+							//atomicExch((int*)&runtimeDataGPU.synIsPostId[synId], postNId);
+							// find synId ////////////////////
+							int cum_pos2 = runtimeDataGPU.cumulativePre[postNId];
+							int n_pre2 = runtimeDataGPU.Npre[postNId];
+							int synCount = 0;
+							int preSynNum = 0; // number of pre neuron id relative to all pre ids for post id
+							SynInfo preSynInfo2; int preNId2;
+							for (int j2 = 0; j2 < n_pre2; j2++) {
+								preSynInfo2 = runtimeDataGPU.preSynapticIds[cum_pos2 + j2];
+								preNId2 = GET_CONN_NEURON_ID(preSynInfo2);
+								if (preNId == preNId2) {
+									preSynNum = synCount;
+								}
+								synCount++;
+							}
+							synId = runtimeDataGPU.numPostSyn[postNId] + preSynNum;
+							/*if (simTimeMs == 242) {
+								printf("%d %d %d\n",postNId,preNId,preSynNum);
+							}*/
+							//////////////////////
 							// add current levels
 							runtimeDataGPU.AMPA_syn_i[synId] += AMPA_sum;
 							if (runtimeDataGPU.AMPA_syn_i[synId]>0.1) {
-								//printf("t:%d post:%d pre:%d synId:%d ampa:%f\n",simTimeMs,postNId,preNId,synId,runtimeDataGPU.AMPA_syn_i[synId]);
+								printf("t:%d post:%d pre:%d synId:%d ampa:%f\n",simTimeMs,postNId,preNId,synId,runtimeDataGPU.AMPA_syn_i[synId]);
 								//printf("%d %d\n",postNId,preNId);
 							}
 							if (networkConfigGPU.sim_with_NMDA_rise) {
@@ -1880,24 +1900,12 @@ __global__ void kernel_setGrpTotN (int* grpTotN) {
 	//__syncthreads();
 }
 
-__device__ void kernel_findSynId (int pre_id, int post_id) {
+__global__ void kernel_initNumPostSyn() {
 	// NS addition
 	//int synId;
 
-	for (int i = 0; i < runtimeDataGPU.numSyn[0]; i++) {
-		if (pre_id == runtimeDataGPU.synIsPreId[i] && post_id == runtimeDataGPU.synIsPostId[i]) {
-			//synId = i;
-		}
-	}
-
-	//return synId;
-}
-
-__global__ void kernel_STPDecayConductances (int t, int sec, int simTime) {
-	// NS addition
-	// TODO: this could be coded more computationally efficiently
-	int grpSize, preNId, cum_pos, n_pre;
-	SynInfo* preSynInfo;
+	/*int grpSize, preNId, cum_pos, n_pre;
+	SynInfo preSynInfo;
 	const int totBuffers = loadBufferCount;
 
 	for (int bufPos = blockIdx.x; bufPos < totBuffers; bufPos += gridDim.x) {
@@ -1908,7 +1916,58 @@ __global__ void kernel_STPDecayConductances (int t, int sec, int simTime) {
 		if ((threadIdx.x < lastNId) && (IS_REGULAR_NEURON(postNId, networkConfigGPU.numNReg, networkConfigGPU.numNPois))) {
 			cum_pos = runtimeDataGPU.cumulativePre[postNId];
 			n_pre = runtimeDataGPU.Npre[postNId];
+			for (int j = 0; j < n_pre; j++) {
+				preSynInfo = runtimeDataGPU.preSynapticIds[cum_pos+j];
+				preNId = GET_CONN_NEURON_ID(preSynInfo)
+				//printf("post:%d pre:%d\n",postNId,preNId);
+				//printf("%d %d\n",postNId,preNId);
+			}
+		}
+	}*/
+
+	int postNIdStart, postNIdEnd, grpSize, preNId, postNId, cum_pos, n_pre;
+	int synCounter = 0;
+	SynInfo preSynInfo;
+
+	for (int gi = 0; gi < networkConfigGPU.numGroups; gi++) {
+		postNIdStart = groupConfigsGPU[gi].lStartN;
+		postNIdEnd = groupConfigsGPU[gi].lEndN;
+		grpSize = (postNIdEnd-postNIdStart+1);
+		for (int i = 0; i < grpSize; i++) {
+			postNId = postNIdStart + i;
+			//cum_pos = runtimeDataGPU.cumulativePre[postNId];
+			n_pre = runtimeDataGPU.Npre[postNId];
+			/*for (int j = 0; j < n_pre; j++) {
+				preSynInfo = runtimeDataGPU.preSynapticIds[cum_pos+j];
+				preNId = GET_CONN_NEURON_ID(preSynInfo);
+				//printf("%d %d\n",postNId,preNId);
+			}*/
+			synCounter = synCounter + n_pre;
+			runtimeDataGPU.numPostSyn[postNId] = synCounter;
+		}
+	}
+	//printf("numPostSyn[28]:%d\n",runtimeDataGPU.numPostSyn[28]);
+
+	//return synId;
+}
+
+__global__ void kernel_STPDecayConductances (int t, int sec, int simTime) {
+	// NS addition
+	// TODO: this could be coded more computationally efficiently
+	int grpSize, preNId, postNId, cum_pos, n_pre, preSynCounter, synId;
+	SynInfo* preSynInfo;
+	const int totBuffers = loadBufferCount;
+
+	for (int bufPos = blockIdx.x; bufPos < totBuffers; bufPos += gridDim.x) {
+		int2 threadLoad = getStaticThreadLoad(bufPos);
+		postNId = (STATIC_LOAD_START(threadLoad) + threadIdx.x);
+		int lastNId = STATIC_LOAD_SIZE(threadLoad);
+		int grpId = STATIC_LOAD_GROUP(threadLoad);
+		if ((threadIdx.x < lastNId) && (IS_REGULAR_NEURON(postNId, networkConfigGPU.numNReg, networkConfigGPU.numNPois))) {
+			cum_pos = runtimeDataGPU.cumulativePre[postNId];
+			n_pre = runtimeDataGPU.Npre[postNId];
 			//for (int j = 0; j < n_pre; cum_pos++, j++) {
+			preSynCounter = 0;
 			for (int j = 0; j < n_pre; j++) {
 				preSynInfo = &(runtimeDataGPU.preSynapticIds[cum_pos+j]);
 				preNId = GET_CONN_NEURON_ID((*preSynInfo));
@@ -1916,11 +1975,33 @@ __global__ void kernel_STPDecayConductances (int t, int sec, int simTime) {
 					//printf("post:%d pre:%d\n",postNId,preNId);
 					//printf("%d %d\n",postNId,preNId);
 				}
+				synId = runtimeDataGPU.numPostSyn[postNId] + preSynCounter;
+				// decay
+				runtimeDataGPU.AMPA_syn_i[synId] *= runtimeDataGPU.stp_dAMPA[preNId];
+				tot_ampa[postNId] += runtimeDataGPU.AMPA_syn_i[synId];
+				if (runtimeDataGPU.AMPA_syn_i[synId]>0.1) {
+					printf("%d %d %d %d %f %f\n",t,postNId,preNId,synId,runtimeDataGPU.AMPA_syn_i[synId],runtimeDataGPU.stp_dAMPA[preNId]);
+				}				
+				runtimeDataGPU.NMDA_d_syn_i[synId] *= runtimeDataGPU.stp_dNMDA[preNId];
+				tot_nmdad[postNId] += runtimeDataGPU.NMDA_d_syn_i[synId];
+				if (networkConfigGPU.sim_with_NMDA_rise) {
+					runtimeDataGPU.NMDA_r_syn_i[synId] *= runtimeDataGPU.stp_rNMDA[preNId];
+					tot_nmdar[postNId] += runtimeDataGPU.NMDA_r_syn_i[synId];
+				}
+				runtimeDataGPU.GABAa_syn_i[synId] *= runtimeDataGPU.stp_dGABAa[preNId];
+				tot_gabaa[postNId] -= runtimeDataGPU.GABAa_syn_i[synId];
+				runtimeDataGPU.GABAb_d_syn_i[synId] *= runtimeDataGPU.stp_dGABAb[preNId];
+				tot_gababd[postNId] -= runtimeDataGPU.GABAb_d_syn_i[synId];
+				if (networkConfigGPU.sim_with_GABAb_rise) {
+					runtimeDataGPU.GABAb_r_syn_i[synId] *= runtimeDataGPU.stp_rGABAb[preNId];
+					tot_gababr[postNId] -= runtimeDataGPU.GABAb_r_syn_i[synId];
+				}
+				preSynCounter++;
 			}
 		}
 	}
 
-	int postNIdStart, postNIdEnd, postNId;
+	/*int postNIdStart, postNIdEnd;
 
 	if (t==242 && blockIdx.x==0 && threadIdx.x==0) {
 		for (int gi = 0; gi < networkConfigGPU.numGroups; gi++) {
@@ -1940,7 +2021,7 @@ __global__ void kernel_STPDecayConductances (int t, int sec, int simTime) {
 				}
 			}
 		}
-	}
+	}*/
 
 	/*for (int i = 0; i < runtimeDataGPU.numSyn[0]; i++) {
 		int preNId = runtimeDataGPU.synIsPreId[i];
@@ -1956,7 +2037,7 @@ __global__ void kernel_STPDecayConductances (int t, int sec, int simTime) {
 		}
 	}*/
 
-	int i = blockIdx.x * blockDim.x + threadIdx.x;
+	/*int i = blockIdx.x * blockDim.x + threadIdx.x;
 
 	//while (i < runtimeDataGPU.numSyn[0]) {
 	if (runtimeDataGPU.numSyn[0] != 0) {
@@ -1992,7 +2073,7 @@ __global__ void kernel_STPDecayConductances (int t, int sec, int simTime) {
 		i +=  blockDim.x * gridDim.x;
         //printf("%d\n",globalIdx);
         __syncthreads();
-    }
+    }*/
 
 	/*const int totBuffers = loadBufferCount;
 	for (int bufPos = blockIdx.x; bufPos < totBuffers; bufPos += gridDim.x) {
@@ -3208,6 +3289,7 @@ void SNN::copyAllSynI(int netId, int lGrpId, RuntimeData* dest, RuntimeData* src
 	assert(src->synIsPostId != NULL);
 	assert(src->numSyn != NULL);
 	assert(src->numSynTmp != NULL);
+	assert(src->numPostSyn != NULL);
 	if(allocateMem) CUDA_CHECK_ERRORS(cudaMalloc((void**)&dest->AMPA_syn_i, sizeof(float) * managerRTDSize.maxNumPreSynNet));
 	if(allocateMem) CUDA_CHECK_ERRORS(cudaMalloc((void**)&dest->NMDA_d_syn_i, sizeof(float) * managerRTDSize.maxNumPreSynNet));
 	if (networkConfigGPU.sim_with_NMDA_rise) {
@@ -3223,6 +3305,7 @@ void SNN::copyAllSynI(int netId, int lGrpId, RuntimeData* dest, RuntimeData* src
 	if(allocateMem) CUDA_CHECK_ERRORS(cudaMalloc((void**)&dest->synIsPostId, sizeof(int) * managerRTDSize.maxNumPostSynNet));
 	if(allocateMem) CUDA_CHECK_ERRORS(cudaMalloc((void**)&dest->numSyn, sizeof(int)));
 	if(allocateMem) CUDA_CHECK_ERRORS(cudaMalloc((void**)&dest->numSynTmp, sizeof(int)));
+	if(allocateMem) CUDA_CHECK_ERRORS(cudaMalloc((void**)&dest->numPostSyn, sizeof(int)*100000)); // TODO: auto-size to number of neurons in sim
 	CUDA_CHECK_ERRORS(cudaMemcpy(&dest->AMPA_syn_i[0], &src->AMPA_syn_i[0], sizeof(float) * managerRTDSize.maxNumPreSynNet, kind));	
 	CUDA_CHECK_ERRORS(cudaMemcpy(&dest->NMDA_d_syn_i[0], &src->NMDA_d_syn_i[0], sizeof(float) * managerRTDSize.maxNumPreSynNet, kind));	
 	if (networkConfigGPU.sim_with_NMDA_rise) {
@@ -3238,6 +3321,7 @@ void SNN::copyAllSynI(int netId, int lGrpId, RuntimeData* dest, RuntimeData* src
 	CUDA_CHECK_ERRORS(cudaMemcpy(&dest->synIsPostId[0], &src->synIsPostId[0], sizeof(int) * managerRTDSize.maxNumPostSynNet, kind));		
 	CUDA_CHECK_ERRORS(cudaMemcpy(&dest->numSyn[0], &src->numSyn[0], sizeof(int), kind));	
 	CUDA_CHECK_ERRORS(cudaMemcpy(&dest->numSynTmp[0], &src->numSynTmp[0], sizeof(int), kind));
+	CUDA_CHECK_ERRORS(cudaMemcpy(&dest->numPostSyn[0], &src->numPostSyn[0], sizeof(int) * 100000, kind));	
 }
 
 /*!
@@ -4322,6 +4406,7 @@ void SNN::doSTPUpdateAndDecayCond_GPU(int netId) {
 
 	if (sim_with_stp || sim_with_conductances) {
 		kernel_STPInit<<<NUM_BLOCKS, NUM_THREADS>>>(simTimeMs, simTimeSec, simTime);
+		if (simTimeMs==0) {kernel_initNumPostSyn<<<1, 1>>>();}
 		kernel_STPDecayConductances<<<NUM_BLOCKS, NUM_THREADS>>>(simTimeMs, simTimeSec, simTime);
 		kernel_STPUpdateAndDecayConductances<<<NUM_BLOCKS, NUM_THREADS>>>(simTimeMs, simTimeSec, simTime);
 		CUDA_GET_LAST_ERROR("STP update\n");
