@@ -1047,7 +1047,7 @@ __global__ void kernel_conductanceUpdate (int simTimeMs, int simTimeSec, int sim
 							// add current levels
 							runtimeDataGPU.AMPA_syn_i[synId] += AMPA_sum;
 							if (runtimeDataGPU.AMPA_syn_i[synId]>0.1) {
-								printf("t:%d post:%d pre:%d synId:%d ampa:%f\n",simTimeMs,postNId,preNId,synId,runtimeDataGPU.AMPA_syn_i[synId]);
+								//printf("t:%d post:%d pre:%d synId:%d ampa:%f\n",simTimeMs,postNId,preNId,synId,runtimeDataGPU.AMPA_syn_i[synId]);
 								//printf("%d %d\n",postNId,preNId);
 							}
 							if (networkConfigGPU.sim_with_NMDA_rise) {
@@ -1980,7 +1980,7 @@ __global__ void kernel_STPDecayConductances (int t, int sec, int simTime) {
 				runtimeDataGPU.AMPA_syn_i[synId] *= runtimeDataGPU.stp_dAMPA[preNId];
 				tot_ampa[postNId] += runtimeDataGPU.AMPA_syn_i[synId];
 				if (runtimeDataGPU.AMPA_syn_i[synId]>0.1) {
-					printf("%d %d %d %d %f %f\n",t,postNId,preNId,synId,runtimeDataGPU.AMPA_syn_i[synId],runtimeDataGPU.stp_dAMPA[preNId]);
+					//printf("%d %d %d %d %f %f\n",t,postNId,preNId,synId,runtimeDataGPU.AMPA_syn_i[synId],runtimeDataGPU.stp_dAMPA[preNId]);
 				}				
 				runtimeDataGPU.NMDA_d_syn_i[synId] *= runtimeDataGPU.stp_dNMDA[preNId];
 				tot_nmdad[postNId] += runtimeDataGPU.NMDA_d_syn_i[synId];
