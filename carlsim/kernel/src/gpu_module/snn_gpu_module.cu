@@ -1881,23 +1881,23 @@ __global__ void kernel_STPDecayConductances (int t, int sec, int simTime) {
 				}
 				synId = runtimeDataGPU.numPostSyn[postNId] + preSynCounter;
 				// decay
-				runtimeDataGPU.AMPA_syn_i[synId] *= runtimeDataGPU.stp_dAMPA[preNId];
+				runtimeDataGPU.AMPA_syn_i[synId] *= runtimeDataGPU.stp_dAMPA[cum_pos+j];
 				tot_ampa[postNId] += runtimeDataGPU.AMPA_syn_i[synId];
 				if (runtimeDataGPU.AMPA_syn_i[synId]>0.1) {
-					//printf("%d %d %d %d %f %f\n",t,postNId,preNId,synId,runtimeDataGPU.AMPA_syn_i[synId],runtimeDataGPU.stp_dAMPA[preNId]);
+					//printf("%d %d %d %d %f %f\n",t,postNId,preNId,synId,runtimeDataGPU.AMPA_syn_i[synId],runtimeDataGPU.stp_dAMPA[cum_pos+j]);
 				}				
-				runtimeDataGPU.NMDA_d_syn_i[synId] *= runtimeDataGPU.stp_dNMDA[preNId];
+				runtimeDataGPU.NMDA_d_syn_i[synId] *= runtimeDataGPU.stp_dNMDA[cum_pos+j];
 				tot_nmdad[postNId] += runtimeDataGPU.NMDA_d_syn_i[synId];
 				if (networkConfigGPU.sim_with_NMDA_rise) {
-					runtimeDataGPU.NMDA_r_syn_i[synId] *= runtimeDataGPU.stp_rNMDA[preNId];
+					runtimeDataGPU.NMDA_r_syn_i[synId] *= runtimeDataGPU.stp_rNMDA[cum_pos+j];
 					tot_nmdar[postNId] += runtimeDataGPU.NMDA_r_syn_i[synId];
 				}
-				runtimeDataGPU.GABAa_syn_i[synId] *= runtimeDataGPU.stp_dGABAa[preNId];
+				runtimeDataGPU.GABAa_syn_i[synId] *= runtimeDataGPU.stp_dGABAa[cum_pos+j];
 				tot_gabaa[postNId] -= runtimeDataGPU.GABAa_syn_i[synId];
-				runtimeDataGPU.GABAb_d_syn_i[synId] *= runtimeDataGPU.stp_dGABAb[preNId];
+				runtimeDataGPU.GABAb_d_syn_i[synId] *= runtimeDataGPU.stp_dGABAb[cum_pos+j];
 				tot_gababd[postNId] -= runtimeDataGPU.GABAb_d_syn_i[synId];
 				if (networkConfigGPU.sim_with_GABAb_rise) {
-					runtimeDataGPU.GABAb_r_syn_i[synId] *= runtimeDataGPU.stp_rGABAb[preNId];
+					runtimeDataGPU.GABAb_r_syn_i[synId] *= runtimeDataGPU.stp_rGABAb[cum_pos+j];
 					tot_gababr[postNId] -= runtimeDataGPU.GABAb_r_syn_i[synId];
 				}
 				preSynCounter++;
