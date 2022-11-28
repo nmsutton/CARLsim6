@@ -773,12 +773,12 @@ typedef struct RuntimeData_s {
 
 #ifdef JK_CA3_SNN
 	// NS addition
-	float* AMPA_syn_i;
-	float* NMDA_d_syn_i;
-	float* NMDA_r_syn_i;
-	float* GABAa_syn_i;
-	float* GABAb_d_syn_i;
-	float* GABAb_r_syn_i;
+	float* AMPA_syn_g;
+	float* NMDA_d_syn_g;
+	float* NMDA_r_syn_g;
+	float* GABAa_syn_g;
+	float* GABAb_d_syn_g;
+	float* GABAb_r_syn_g;
 	int* grpTotN;
 	int* synIsPreId;
 	int* synIsPostId;

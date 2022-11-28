@@ -2572,15 +2572,15 @@ void SNN::copyConductanceAMPA(int netId, int lGrpId, RuntimeData* dest, RuntimeD
 void SNN::copyAllSynI(int netId, int lGrpId, RuntimeData* dest, RuntimeData* src, bool allocateMem, int destOffset) {
 	// NS addition
 	if(allocateMem) {
-		dest->AMPA_syn_i = new float[managerRTDSize.maxNumPreSynNet];
-		dest->NMDA_d_syn_i = new float[managerRTDSize.maxNumPreSynNet];
+		dest->AMPA_syn_g = new float[managerRTDSize.maxNumPreSynNet];
+		dest->NMDA_d_syn_g = new float[managerRTDSize.maxNumPreSynNet];
 		if (sim_with_NMDA_rise) {
-			dest->NMDA_r_syn_i = new float[managerRTDSize.maxNumPreSynNet];
+			dest->NMDA_r_syn_g = new float[managerRTDSize.maxNumPreSynNet];
 		}
-		dest->GABAa_syn_i = new float[managerRTDSize.maxNumPreSynNet];
-		dest->GABAb_d_syn_i = new float[managerRTDSize.maxNumPreSynNet];
+		dest->GABAa_syn_g = new float[managerRTDSize.maxNumPreSynNet];
+		dest->GABAb_d_syn_g = new float[managerRTDSize.maxNumPreSynNet];
 		if (sim_with_GABAb_rise) {
-			dest->GABAb_r_syn_i = new float[managerRTDSize.maxNumPreSynNet];
+			dest->GABAb_r_syn_g = new float[managerRTDSize.maxNumPreSynNet];
 		}
 		dest->grpTotN = new int[100]; // cumulative total neurons relative to group numbers. assumes max number of neuron groups is 10.
 		dest->synIsPreId = new int[managerRTDSize.maxNumPreSynNet];
@@ -2589,15 +2589,15 @@ void SNN::copyAllSynI(int netId, int lGrpId, RuntimeData* dest, RuntimeData* src
 		dest->numSynTmp = new int();
 		dest->numPostSyn = new int[100000];
 	}
-	memcpy(&dest->AMPA_syn_i, &src->AMPA_syn_i, sizeof(float) * managerRTDSize.maxNumPreSynNet);
-	memcpy(&dest->NMDA_d_syn_i, &src->NMDA_d_syn_i, sizeof(float) * managerRTDSize.maxNumPreSynNet);
+	memcpy(&dest->AMPA_syn_g, &src->AMPA_syn_g, sizeof(float) * managerRTDSize.maxNumPreSynNet);
+	memcpy(&dest->NMDA_d_syn_g, &src->NMDA_d_syn_g, sizeof(float) * managerRTDSize.maxNumPreSynNet);
 	if (sim_with_NMDA_rise) {
-		memcpy(&dest->NMDA_r_syn_i, &src->NMDA_r_syn_i, sizeof(float) * managerRTDSize.maxNumPreSynNet);
+		memcpy(&dest->NMDA_r_syn_g, &src->NMDA_r_syn_g, sizeof(float) * managerRTDSize.maxNumPreSynNet);
 	}
-	memcpy(&dest->GABAa_syn_i, &src->GABAa_syn_i, sizeof(float) * managerRTDSize.maxNumPreSynNet);
-	memcpy(&dest->GABAb_d_syn_i, &src->GABAb_d_syn_i, sizeof(float) * managerRTDSize.maxNumPreSynNet);
+	memcpy(&dest->GABAa_syn_g, &src->GABAa_syn_g, sizeof(float) * managerRTDSize.maxNumPreSynNet);
+	memcpy(&dest->GABAb_d_syn_g, &src->GABAb_d_syn_g, sizeof(float) * managerRTDSize.maxNumPreSynNet);
 	if (sim_with_GABAb_rise) {
-		memcpy(&dest->GABAb_r_syn_i, &src->GABAb_r_syn_i, sizeof(float) * managerRTDSize.maxNumPreSynNet);
+		memcpy(&dest->GABAb_r_syn_g, &src->GABAb_r_syn_g, sizeof(float) * managerRTDSize.maxNumPreSynNet);
 	}
 	memcpy(&dest->grpTotN, &src->grpTotN, sizeof(int) * 100);
 	memcpy(&dest->synIsPreId, &src->synIsPreId, sizeof(int) * managerRTDSize.maxNumPreSynNet);
