@@ -3389,23 +3389,13 @@ void SNN::allocateManagerRuntimeData() {
 	memset(managerRuntimeData.gGABAb, 0, sizeof(float) * managerRTDSize.glbNumNReg);
 
 #ifdef JK_CA3_SNN
-	// NS addition
-	managerRuntimeData.NMDA_d_syn_g = new float[managerRTDSize.maxNumPreSynNet];
-	managerRuntimeData.NMDA_r_syn_g = new float[managerRTDSize.maxNumPreSynNet];
-	managerRuntimeData.GABAa_syn_g = new float[managerRTDSize.maxNumPreSynNet];
-	managerRuntimeData.GABAb_d_syn_g = new float[managerRTDSize.maxNumPreSynNet];
-	managerRuntimeData.GABAb_r_syn_g = new float[managerRTDSize.maxNumPreSynNet];	
+	// NS addition	
 	managerRuntimeData.grpTotN = new int[100]; // assuming max number of neuron groups is 10. TODO: find variable storing this rather than hardcoding 100 here.
 	managerRuntimeData.synIsPreId = new int[managerRTDSize.maxNumPreSynNet];
 	managerRuntimeData.synIsPostId = new int[managerRTDSize.maxNumPostSynNet];
 	managerRuntimeData.numSyn = new int;
 	managerRuntimeData.numSynTmp = new int;
 	managerRuntimeData.numPostSyn = new int[100000];
-	memset(managerRuntimeData.NMDA_d_syn_g, 0, sizeof(float) * managerRTDSize.maxNumPreSynNet);
-	memset(managerRuntimeData.NMDA_r_syn_g, 0, sizeof(float) * managerRTDSize.maxNumPreSynNet);
-	memset(managerRuntimeData.GABAa_syn_g, 0, sizeof(float) * managerRTDSize.maxNumPreSynNet);
-	memset(managerRuntimeData.GABAb_d_syn_g, 0, sizeof(float) * managerRTDSize.maxNumPreSynNet);
-	memset(managerRuntimeData.GABAb_r_syn_g, 0, sizeof(float) * managerRTDSize.maxNumPreSynNet);
 	memset(managerRuntimeData.grpTotN, 0, sizeof(int) * 100);
 	memset(managerRuntimeData.synIsPreId, 0, sizeof(int) * managerRTDSize.maxNumPreSynNet);
 	memset(managerRuntimeData.synIsPostId, 0, sizeof(int) * managerRTDSize.maxNumPostSynNet);
@@ -7536,21 +7526,13 @@ void SNN::deleteManagerRuntimeData() {
 	managerRuntimeData.gAMPA=NULL; managerRuntimeData.gNMDA=NULL; managerRuntimeData.gNMDA_r=NULL; managerRuntimeData.gNMDA_d=NULL;
 	managerRuntimeData.gGABAa=NULL; managerRuntimeData.gGABAb=NULL; managerRuntimeData.gGABAb_r=NULL; managerRuntimeData.gGABAb_d=NULL;
 	#ifdef JK_CA3_SNN
-		// NS addition
-		if (managerRuntimeData.NMDA_d_syn_g!=NULL) delete[] managerRuntimeData.NMDA_d_syn_g;
-		if (managerRuntimeData.NMDA_r_syn_g!=NULL) delete[] managerRuntimeData.NMDA_r_syn_g;
-		if (managerRuntimeData.GABAa_syn_g!=NULL) delete[] managerRuntimeData.GABAa_syn_g;
-		if (managerRuntimeData.GABAb_d_syn_g!=NULL) delete[] managerRuntimeData.GABAb_d_syn_g;
-		if (managerRuntimeData.GABAb_r_syn_g!=NULL) delete[] managerRuntimeData.GABAb_r_syn_g;	
+		// NS addition	
 		if (managerRuntimeData.grpTotN!=NULL) delete[] managerRuntimeData.grpTotN;	
 		if (managerRuntimeData.synIsPreId!=NULL) delete[] managerRuntimeData.synIsPreId;
 		if (managerRuntimeData.synIsPostId!=NULL) delete[] managerRuntimeData.synIsPostId;
 		if (managerRuntimeData.numSyn!=NULL) delete[] managerRuntimeData.numSyn;
 		if (managerRuntimeData.numSynTmp!=NULL) delete[] managerRuntimeData.numSynTmp;
 		if (managerRuntimeData.numPostSyn!=NULL) delete[] managerRuntimeData.numPostSyn;
-		managerRuntimeData.NMDA_d_syn_g=NULL;
-		managerRuntimeData.NMDA_r_syn_g=NULL; managerRuntimeData.GABAa_syn_g=NULL;
-		managerRuntimeData.GABAb_d_syn_g=NULL; managerRuntimeData.GABAb_r_syn_g=NULL;
 		managerRuntimeData.grpTotN=NULL; managerRuntimeData.synIsPreId=NULL; 
 		managerRuntimeData.synIsPostId=NULL; managerRuntimeData.numSyn=NULL;
 		managerRuntimeData.numSynTmp=NULL; managerRuntimeData.numPostSyn=NULL;

@@ -2572,30 +2572,12 @@ void SNN::copyConductanceAMPA(int netId, int lGrpId, RuntimeData* dest, RuntimeD
 void SNN::copyAllSynI(int netId, int lGrpId, RuntimeData* dest, RuntimeData* src, bool allocateMem, int destOffset) {
 	// NS addition
 	if(allocateMem) {
-		dest->NMDA_d_syn_g = new float[managerRTDSize.maxNumPreSynNet];
-		if (sim_with_NMDA_rise) {
-			dest->NMDA_r_syn_g = new float[managerRTDSize.maxNumPreSynNet];
-		}
-		dest->GABAa_syn_g = new float[managerRTDSize.maxNumPreSynNet];
-		dest->GABAb_d_syn_g = new float[managerRTDSize.maxNumPreSynNet];
-		if (sim_with_GABAb_rise) {
-			dest->GABAb_r_syn_g = new float[managerRTDSize.maxNumPreSynNet];
-		}
 		dest->grpTotN = new int[100]; // cumulative total neurons relative to group numbers. assumes max number of neuron groups is 10.
 		dest->synIsPreId = new int[managerRTDSize.maxNumPreSynNet];
 		dest->synIsPostId = new int[managerRTDSize.maxNumPostSynNet];
 		dest->numSyn = new int();
 		dest->numSynTmp = new int();
 		dest->numPostSyn = new int[100000];
-	}
-	memcpy(&dest->NMDA_d_syn_g, &src->NMDA_d_syn_g, sizeof(float) * managerRTDSize.maxNumPreSynNet);
-	if (sim_with_NMDA_rise) {
-		memcpy(&dest->NMDA_r_syn_g, &src->NMDA_r_syn_g, sizeof(float) * managerRTDSize.maxNumPreSynNet);
-	}
-	memcpy(&dest->GABAa_syn_g, &src->GABAa_syn_g, sizeof(float) * managerRTDSize.maxNumPreSynNet);
-	memcpy(&dest->GABAb_d_syn_g, &src->GABAb_d_syn_g, sizeof(float) * managerRTDSize.maxNumPreSynNet);
-	if (sim_with_GABAb_rise) {
-		memcpy(&dest->GABAb_r_syn_g, &src->GABAb_r_syn_g, sizeof(float) * managerRTDSize.maxNumPreSynNet);
 	}
 	memcpy(&dest->grpTotN, &src->grpTotN, sizeof(int) * 100);
 	memcpy(&dest->synIsPreId, &src->synIsPreId, sizeof(int) * managerRTDSize.maxNumPreSynNet);
@@ -3172,12 +3154,21 @@ void SNN::copyAuxiliaryData(int netId, int lGrpId, RuntimeData* dest, bool alloc
 
 #if JK_CA3_SNN
 	if(allocateMem) {
-		//networkConfigs[netId].syn_gLength = ceil(((networkConfigs[netId].maxNumPreSynN) / 32.0f));
 		networkConfigs[netId].syn_gLength = networkConfigs[netId].maxNumPreSynN;
 		dest->AMPA_syn_g = new float[networkConfigs[netId].numNReg * networkConfigs[netId].syn_gLength];
+		dest->NMDA_d_syn_g = new float[networkConfigs[netId].numNReg * networkConfigs[netId].syn_gLength];
+		dest->NMDA_r_syn_g = new float[networkConfigs[netId].numNReg * networkConfigs[netId].syn_gLength];
+		dest->GABAa_syn_g = new float[networkConfigs[netId].numNReg * networkConfigs[netId].syn_gLength];
+		dest->GABAb_d_syn_g = new float[networkConfigs[netId].numNReg * networkConfigs[netId].syn_gLength];
+		dest->GABAb_r_syn_g = new float[networkConfigs[netId].numNReg * networkConfigs[netId].syn_gLength];		
 	}
 	assert(networkConfigs[netId].maxNumPreSynN >= 0);
 	memset(dest->AMPA_syn_g, 0, networkConfigs[netId].numNReg * networkConfigs[netId].syn_gLength);
+	memset(dest->NMDA_d_syn_g, 0, networkConfigs[netId].numNReg * networkConfigs[netId].syn_gLength);
+	memset(dest->NMDA_r_syn_g, 0, networkConfigs[netId].numNReg * networkConfigs[netId].syn_gLength);	
+	memset(dest->GABAa_syn_g, 0, networkConfigs[netId].numNReg * networkConfigs[netId].syn_gLength);
+	memset(dest->GABAb_d_syn_g, 0, networkConfigs[netId].numNReg * networkConfigs[netId].syn_gLength);
+	memset(dest->GABAb_r_syn_g, 0, networkConfigs[netId].numNReg * networkConfigs[netId].syn_gLength);	
 #endif
 
 	// synSpikeTime: an array indicates the last time when a synapse got a spike
@@ -3655,6 +3646,11 @@ void SNN::copySpikeTables(int netId) {
 	delete [] runtimeData[netId].I_set;
 #if JK_CA3_SNN
 	delete [] runtimeData[netId].AMPA_syn_g;
+	delete [] runtimeData[netId].NMDA_d_syn_g;
+	delete [] runtimeData[netId].NMDA_r_syn_g;
+	delete [] runtimeData[netId].GABAa_syn_g;
+	delete [] runtimeData[netId].GABAb_d_syn_g;
+	delete [] runtimeData[netId].GABAb_r_syn_g;
 #endif	
 	delete [] runtimeData[netId].poissonFireRate;
 	delete [] runtimeData[netId].lastSpikeTime;
