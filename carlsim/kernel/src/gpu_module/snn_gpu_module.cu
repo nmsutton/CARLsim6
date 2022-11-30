@@ -124,6 +124,12 @@ texture <int,    1, cudaReadModeElementType>  groupIdInfo_tex; // groupIDInfo is
 __device__  int timeTableD1GPU_tex_offset;
 __device__  int timeTableD2GPU_tex_offset;
 
+// NS addition
+__device__  int PRINT_SYNAPSE_SPIKE = 0;
+__device__  int PRINT_CONDUCTANCE_DECAY = 0;
+__device__  int PRINT_RECEPTOR_CURRENT = 0;
+__device__  int PRINT_STP_VARIABLES = 0;
+
 // example of the quick synaptic table
 // index     cnt
 // 0000000 - 0
@@ -1031,24 +1037,6 @@ __global__ void kernel_conductanceUpdate (int simTimeMs, int simTimeSec, int sim
 								AMPA_sum += change;
 							}
 							// NS addition
-							////////////////// find synId ////////////////////
-							int cum_pos2 = runtimeDataGPU.cumulativePre[postNId];
-							int n_pre2 = runtimeDataGPU.Npre[postNId];
-							int synCount = 0;
-							int preSynNum = 0; // number of pre neuron id relative to all pre ids for post id
-							SynInfo preSynInfo2; int preNId2, synId;
-							for (int j2 = 0; j2 < n_pre2; j2++) {
-								preSynInfo2 = runtimeDataGPU.preSynapticIds[cum_pos2 + j2];
-								preNId2 = GET_CONN_NEURON_ID(preSynInfo2);
-								if (preNId == preNId2) {
-									preSynNum = synCount;
-								}
-								synCount++;
-							}
-							synId = runtimeDataGPU.numPostSyn[postNId] + preSynNum;
-							//////////////////////////////////////////////////
-							// add current levels
-							//runtimeDataGPU.AMPA_syn_g[synId] += AMPA_sum;
 							setAMPASynGValue(postNId, pre_ctr, AMPA_sum);
 							if (networkConfigGPU.sim_with_NMDA_rise) {
 								setNMDARSynGValue(postNId, pre_ctr, NMDA_r_sum);
@@ -1065,37 +1053,9 @@ __global__ void kernel_conductanceUpdate (int simTimeMs, int simTimeSec, int sim
 							else {
 								setGABABDSynGValue(postNId, pre_ctr, GABAb_sum);
 							}
-							//printf("t:%d postNId:%d preNId:%d pre_ctr:%d ampa:%f\n",simTimeMs,postNId,preNId,pre_ctr,AMPA_sum);							
-							//if (runtimeDataGPU.AMPA_syn_g[synId]>0.1) {
-								//printf("t:%d post:%d pre:%d synId:%d ampa:%f\n",simTimeMs,postNId,preNId,synId,runtimeDataGPU.AMPA_syn_g[synId]);
-							//}
-							if (simTimeMs==242) {
-								//float* ampa_ptr = getAMPASynGPtr(postNId, j+wt_i);
-								//printf("t:%d post:%d pre:%d ampa:%f synaptic spike\n",simTimeMs,postNId,j+wt_i,*ampa_ptr);
+							if (PRINT_SYNAPSE_SPIKE==1) {
+								printf("t:%d post:%d pre:%d pre_ctr:%d ampa:%f gaba_a: %f synaptic spike\n",simTimeMs,postNId,preNId,pre_ctr,AMPA_sum,GABAa_sum);	
 							}
-							/*
-							int j2 = cum_pos + wtId;
-							setAMPASynGValue(postNId, (cum_pos + wtId), AMPA_sum);
-							float* ampa_ptr = getAMPASynGPtr(postNId, (cum_pos + wtId));
-							//setAMPASynGValue(postNId, j, AMPA_sum);
-							//float* ampa_ptr = getAMPASynGPtr(postNId, j);
-							float tmp_ampa = *ampa_ptr;
-							printf("post:%d pre:%d j:%d j2:%d tmp_ampa:%f\n",postNId,preNId,j,j2,tmp_ampa);
-							*/
-							if (networkConfigGPU.sim_with_NMDA_rise) {
-								runtimeDataGPU.NMDA_r_syn_g[synId] += NMDA_r_sum;
-							}
-							runtimeDataGPU.GABAa_syn_g[synId] += GABAa_sum;
-							//if (runtimeDataGPU.GABAa_syn_g[synId]>0.1) {
-								//printf("t:%d post:%d pre:%d synid:%d gaba:%f spike\n",simTimeMs,postNId,preNId,synId,runtimeDataGPU.GABAa_syn_g[synId]);
-							//}
-							if (networkConfigGPU.sim_with_GABAb_rise) {
-								runtimeDataGPU.GABAb_d_syn_g[synId] += GABAb_d_sum;
-								runtimeDataGPU.GABAb_r_syn_g[synId] += GABAb_r_sum;
-							}
-							else {
-								runtimeDataGPU.GABAb_d_syn_g[synId] += GABAb_sum;
-							}						
 						}
 					}
 #else
@@ -1408,8 +1368,8 @@ __device__ void updateNeuronState(int nid, int grpId, int simTimeMs, bool lastIt
 			+ runtimeDataGPU.gGABAa[nid] * (v + 70.0f)
 			+ gGABAb * (v + 90.0f));
 
-		if (threadIdx.x==0 && blockIdx.x==0 && simTimeMs == 15) { // NS addition
-			//printf("t: %d grp_id: %d I_sum: %f gabaa:%f volt:%f\n",simTimeMs, grpId, I_sum, runtimeDataGPU.gGABAa[nid], (v + 70.0f));
+		if (PRINT_RECEPTOR_CURRENT == 1 && nid==10 && simTimeMs==500) { // NS addition
+			printf("t:%d neuron_id:%d current:%f ampa_cond:%f ampa_volt:%f gabaa_cond:%f\n",simTimeMs, nid, I_sum, runtimeDataGPU.gAMPA[nid], (v - 0.0f), runtimeDataGPU.gGABAa[nid]);
 		}
 
 		if (config.icalcType == alpha1_ADK13) {
@@ -2020,6 +1980,9 @@ __global__ void kernel_STPDecayConductances (int t, int sec, int simTime) {
 				//if (tot_ampa[postNId]>0.1 && postNId==20 && preNId==30) {
 					//printf("t:%d post:%d pre:%d ampa:%f\n",t,postNId,preNId,tot_ampa[postNId]);
 				//}	
+				if (PRINT_CONDUCTANCE_DECAY == 1 && runtimeDataGPU.gAMPA[postNId] > 0.1) {
+					printf("t:%d post:%d pre:%d ampa:%f gabaa:%f\n",t,postNId,preNId,runtimeDataGPU.gAMPA[postNId],runtimeDataGPU.gGABAa[postNId]);
+				}
 			}
 		}
 	}
@@ -2139,6 +2102,9 @@ __global__ void kernel_STPUpdateAndDecayConductances (int t, int sec, int simTim
 					// 	printf("decay update:: simtime:%d, postNid:%d -- pos:%d -- stpu: %f/%f -- stpx: %f/%f -- tauu_inv: %f -- taux_inv: %f -- imin: %d -- iplus: %d\n", simTime, nid, lSId, runtimeDataGPU.stpu[ind_minus], runtimeDataGPU.stpu[ind_plus],
 					// 		runtimeDataGPU.stpx[ind_minus], runtimeDataGPU.stpx[ind_plus], runtimeDataGPU.stp_tau_u_inv[lSId], runtimeDataGPU.stp_tau_x_inv[lSId], ind_minus, ind_plus);
 					// }
+					if (PRINT_STP_VARIABLES == 1 && runtimeDataGPU.gAMPA[nid] > 0.1) {
+						printf("t:%d pre:%d post:%d x:%f u:%f ampa:%f gabaa:%f\n",t,lSId,nid,runtimeDataGPU.stpx[ind_plus],runtimeDataGPU.stpu[ind_plus],runtimeDataGPU.gAMPA[nid],runtimeDataGPU.gGABAa[nid]);
+					}
 				}
 			}
 			// int ind_plus  = getSTPBufPos(nid, simTime);
