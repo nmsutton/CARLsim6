@@ -896,6 +896,10 @@ __global__ 	void kernel_findFiring (int simTimeMs, int simTime) {
  */
 __global__ void kernel_conductanceUpdate (int simTimeMs, int simTimeSec, int simTime) {
 	__shared__ int sh_quickSynIdTable[256];
+	// NS addition
+	SynInfo synInfo2;
+	uint32_t preNId2;
+	int preIndex;
 
 	// Table for quick access
 	for (int i = 0; i < 256; i += blockDim.x) {
@@ -932,7 +936,6 @@ __global__ void kernel_conductanceUpdate (int simTimeMs, int simTimeSec, int sim
 			float GABAb_d_sum	 = 0.0f;
 			int   lmt			 = runtimeDataGPU.Npre[postNId];
 			unsigned int cum_pos = runtimeDataGPU.cumulativePre[postNId];
-			int   pre_ctr = 0; // NS addition; pre-synaptic neuron counter
 
 			// find the total current to this neuron...
 			for (int j = 0; (lmt) && (j <= ((lmt - 1) >> LOG_CURRENT_GROUP)); j++) {
@@ -1037,24 +1040,33 @@ __global__ void kernel_conductanceUpdate (int simTimeMs, int simTimeSec, int sim
 								AMPA_sum += change;
 							}
 							// NS addition
-							setAMPASynGValue(postNId, pre_ctr, AMPA_sum);
+							// find pre index
+							for (int j2 = 0; j2 < lmt; j2++) {
+								synInfo2 = runtimeDataGPU.preSynapticIds[cum_pos + j2];
+								preNId2 = GET_CONN_NEURON_ID(synInfo2);
+								if (preNId == preNId2) {
+									preIndex = j2;
+								}
+							}
+							// store conductance value
+							setAMPASynGValue(postNId, preIndex, AMPA_sum);
 							if (networkConfigGPU.sim_with_NMDA_rise) {
-								setNMDARSynGValue(postNId, pre_ctr, NMDA_r_sum);
-								setNMDADSynGValue(postNId, pre_ctr, NMDA_d_sum);
+								setNMDARSynGValue(postNId, preIndex, NMDA_r_sum);
+								setNMDADSynGValue(postNId, preIndex, NMDA_d_sum);
 							}
 							else {
-								setNMDADSynGValue(postNId, pre_ctr, NMDA_sum);
+								setNMDADSynGValue(postNId, preIndex, NMDA_sum);
 							}
-							setGABAASynGValue(postNId, pre_ctr, GABAa_sum);
+							setGABAASynGValue(postNId, preIndex, GABAa_sum);
 							if (networkConfigGPU.sim_with_GABAb_rise) {
-								setGABABRSynGValue(postNId, pre_ctr, GABAb_r_sum);
-								setGABABRSynGValue(postNId, pre_ctr, GABAb_d_sum);
+								setGABABRSynGValue(postNId, preIndex, GABAb_r_sum);
+								setGABABRSynGValue(postNId, preIndex, GABAb_d_sum);
 							}
 							else {
-								setGABABDSynGValue(postNId, pre_ctr, GABAb_sum);
+								setGABABDSynGValue(postNId, preIndex, GABAb_sum);
 							}
 							if (PRINT_SYNAPSE_SPIKE==1) {
-								printf("t:%d post:%d pre:%d pre_ctr:%d ampa:%f gaba_a: %f synaptic spike\n",simTimeMs,postNId,preNId,pre_ctr,AMPA_sum,GABAa_sum);	
+								printf("t:%d post:%d pre:%d preIndex:%d ampa:%f gaba_a: %f synaptic spike\n",simTimeMs,postNId,preNId,preIndex,AMPA_sum,GABAa_sum);	
 							}
 						}
 					}
@@ -1165,7 +1177,6 @@ __global__ void kernel_conductanceUpdate (int simTimeMs, int simTimeSec, int sim
 #endif
 					tmp_I_cnt++;
 					tmp_I_set = tmp_I_set & (~(1 << (8 * cnt + wt_i)));
-					pre_ctr++; // NS addition
 				}
 
 				// FIXME: move reset outside kernel for debbuing I_set, resume it later
