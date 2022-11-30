@@ -945,6 +945,7 @@ private:
 	int loadSimulation_internal(bool onlyPlastic);
 
 	void resetConductances(int netId);
+	void resetConductancesGPU(int netId); // NS addition
 	void resetCurrent(int netId);
 	void resetFiringInformation(); //!< resets the firing information when updateNetwork is called
 	void resetGroupConfigs(bool deallocate = false);

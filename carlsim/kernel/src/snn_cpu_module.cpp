@@ -2572,7 +2572,6 @@ void SNN::copyConductanceAMPA(int netId, int lGrpId, RuntimeData* dest, RuntimeD
 void SNN::copyAllSynI(int netId, int lGrpId, RuntimeData* dest, RuntimeData* src, bool allocateMem, int destOffset) {
 	// NS addition
 	if(allocateMem) {
-		dest->AMPA_syn_g = new float[managerRTDSize.maxNumPreSynNet];
 		dest->NMDA_d_syn_g = new float[managerRTDSize.maxNumPreSynNet];
 		if (sim_with_NMDA_rise) {
 			dest->NMDA_r_syn_g = new float[managerRTDSize.maxNumPreSynNet];
@@ -2589,7 +2588,6 @@ void SNN::copyAllSynI(int netId, int lGrpId, RuntimeData* dest, RuntimeData* src
 		dest->numSynTmp = new int();
 		dest->numPostSyn = new int[100000];
 	}
-	memcpy(&dest->AMPA_syn_g, &src->AMPA_syn_g, sizeof(float) * managerRTDSize.maxNumPreSynNet);
 	memcpy(&dest->NMDA_d_syn_g, &src->NMDA_d_syn_g, sizeof(float) * managerRTDSize.maxNumPreSynNet);
 	if (sim_with_NMDA_rise) {
 		memcpy(&dest->NMDA_r_syn_g, &src->NMDA_r_syn_g, sizeof(float) * managerRTDSize.maxNumPreSynNet);
@@ -3172,6 +3170,16 @@ void SNN::copyAuxiliaryData(int netId, int lGrpId, RuntimeData* dest, bool alloc
 	assert(networkConfigs[netId].maxNumPreSynN >= 0);
 	memset(dest->I_set, 0, sizeof(int) * networkConfigs[netId].numNReg * networkConfigs[netId].I_setLength);
 
+#if JK_CA3_SNN
+	if(allocateMem) {
+		//networkConfigs[netId].syn_gLength = ceil(((networkConfigs[netId].maxNumPreSynN) / 32.0f));
+		networkConfigs[netId].syn_gLength = networkConfigs[netId].maxNumPreSynN;
+		dest->AMPA_syn_g = new float[networkConfigs[netId].numNReg * networkConfigs[netId].syn_gLength];
+	}
+	assert(networkConfigs[netId].maxNumPreSynN >= 0);
+	memset(dest->AMPA_syn_g, 0, networkConfigs[netId].numNReg * networkConfigs[netId].syn_gLength);
+#endif
+
 	// synSpikeTime: an array indicates the last time when a synapse got a spike
 	if(allocateMem)
 		dest->synSpikeTime = new int[networkConfigs[netId].numPreSynNet];
@@ -3645,6 +3653,9 @@ void SNN::copySpikeTables(int netId) {
 	delete [] runtimeData[netId].postSynapticIds;
 	delete [] runtimeData[netId].preSynapticIds;
 	delete [] runtimeData[netId].I_set;
+#if JK_CA3_SNN
+	delete [] runtimeData[netId].AMPA_syn_g;
+#endif	
 	delete [] runtimeData[netId].poissonFireRate;
 	delete [] runtimeData[netId].lastSpikeTime;
 	delete [] runtimeData[netId].spikeGenBits;

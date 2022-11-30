@@ -773,7 +773,7 @@ typedef struct RuntimeData_s {
 
 #ifdef JK_CA3_SNN
 	// NS addition
-	float* AMPA_syn_g;
+	float* AMPA_syn_g;	
 	float* NMDA_d_syn_g;
 	float* NMDA_r_syn_g;
 	float* GABAa_syn_g;
@@ -946,6 +946,10 @@ typedef struct NetworkConfigRT_s  {
 	// configurations for runtime data sizes
 	unsigned int I_setLength; //!< used for GPU only
 	size_t       I_setPitch;  //!< used for GPU only
+#if JK_CA3_SNN
+	unsigned int syn_gLength; //!< used for GPU only
+	size_t       syn_gPitch;  //!< used for GPU only	
+#endif
 	size_t       STP_Pitch;   //!< numN rounded upwards to the nearest 256 boundary, used for GPU only
 	int numPostSynNet;        //!< the total number of post-connections in a network
 	int numPreSynNet;         //!< the total number of pre-connections in a network

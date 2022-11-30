@@ -3390,7 +3390,6 @@ void SNN::allocateManagerRuntimeData() {
 
 #ifdef JK_CA3_SNN
 	// NS addition
-	managerRuntimeData.AMPA_syn_g = new float[managerRTDSize.maxNumPreSynNet];
 	managerRuntimeData.NMDA_d_syn_g = new float[managerRTDSize.maxNumPreSynNet];
 	managerRuntimeData.NMDA_r_syn_g = new float[managerRTDSize.maxNumPreSynNet];
 	managerRuntimeData.GABAa_syn_g = new float[managerRTDSize.maxNumPreSynNet];
@@ -3402,7 +3401,6 @@ void SNN::allocateManagerRuntimeData() {
 	managerRuntimeData.numSyn = new int;
 	managerRuntimeData.numSynTmp = new int;
 	managerRuntimeData.numPostSyn = new int[100000];
-	memset(managerRuntimeData.AMPA_syn_g, 0, sizeof(float) * managerRTDSize.maxNumPreSynNet);
 	memset(managerRuntimeData.NMDA_d_syn_g, 0, sizeof(float) * managerRTDSize.maxNumPreSynNet);
 	memset(managerRuntimeData.NMDA_r_syn_g, 0, sizeof(float) * managerRTDSize.maxNumPreSynNet);
 	memset(managerRuntimeData.GABAa_syn_g, 0, sizeof(float) * managerRTDSize.maxNumPreSynNet);
@@ -7539,7 +7537,6 @@ void SNN::deleteManagerRuntimeData() {
 	managerRuntimeData.gGABAa=NULL; managerRuntimeData.gGABAb=NULL; managerRuntimeData.gGABAb_r=NULL; managerRuntimeData.gGABAb_d=NULL;
 	#ifdef JK_CA3_SNN
 		// NS addition
-		if (managerRuntimeData.AMPA_syn_g!=NULL) delete[] managerRuntimeData.AMPA_syn_g;
 		if (managerRuntimeData.NMDA_d_syn_g!=NULL) delete[] managerRuntimeData.NMDA_d_syn_g;
 		if (managerRuntimeData.NMDA_r_syn_g!=NULL) delete[] managerRuntimeData.NMDA_r_syn_g;
 		if (managerRuntimeData.GABAa_syn_g!=NULL) delete[] managerRuntimeData.GABAa_syn_g;
@@ -7551,7 +7548,7 @@ void SNN::deleteManagerRuntimeData() {
 		if (managerRuntimeData.numSyn!=NULL) delete[] managerRuntimeData.numSyn;
 		if (managerRuntimeData.numSynTmp!=NULL) delete[] managerRuntimeData.numSynTmp;
 		if (managerRuntimeData.numPostSyn!=NULL) delete[] managerRuntimeData.numPostSyn;
-		managerRuntimeData.AMPA_syn_g=NULL; managerRuntimeData.NMDA_d_syn_g=NULL;
+		managerRuntimeData.NMDA_d_syn_g=NULL;
 		managerRuntimeData.NMDA_r_syn_g=NULL; managerRuntimeData.GABAa_syn_g=NULL;
 		managerRuntimeData.GABAb_d_syn_g=NULL; managerRuntimeData.GABAb_r_syn_g=NULL;
 		managerRuntimeData.grpTotN=NULL; managerRuntimeData.synIsPreId=NULL; 
