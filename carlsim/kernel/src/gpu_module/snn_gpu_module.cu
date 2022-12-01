@@ -1969,7 +1969,7 @@ __global__ void kernel_STPDecayConductances (int t, int sec, int simTime) {
 					atomicAdd(&runtimeDataGPU.gNMDA_d[postNId], *nmdad_ptr);
 				}
 				else {
-					runtimeDataGPU.gNMDA[postNId] += *nmdad_ptr;
+					//runtimeDataGPU.gNMDA[postNId] += *nmdad_ptr;
 					atomicAdd(&runtimeDataGPU.gNMDA[postNId], *nmdad_ptr);
 				}
 				float* gabaa_ptr = getGABAASynGPtr(postNId, j);	
