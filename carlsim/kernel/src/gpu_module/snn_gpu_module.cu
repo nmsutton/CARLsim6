@@ -125,8 +125,8 @@ __device__  int timeTableD1GPU_tex_offset;
 __device__  int timeTableD2GPU_tex_offset;
 
 // NS addition
-__device__  int PRINT_SYNAPSE_SPIKE = 0;
-__device__  int PRINT_CONDUCTANCE_DECAY = 0;
+__device__  int PRINT_SYNAPSE_SPIKE = 1;
+__device__  int PRINT_CONDUCTANCE_DECAY = 1;
 __device__  int PRINT_RECEPTOR_CURRENT = 0;
 __device__  int PRINT_STP_VARIABLES = 0;
 
@@ -1956,31 +1956,39 @@ __global__ void kernel_STPDecayConductances (int t, int sec, int simTime) {
 				//tot_ampa[postNId] += runtimeDataGPU.AMPA_syn_g[synId];
 				float* ampa_ptr = getAMPASynGPtr(postNId, j);	
 				*ampa_ptr *= runtimeDataGPU.stp_dAMPA[cum_pos+j];
-				runtimeDataGPU.gAMPA[postNId] += *ampa_ptr;
+				//runtimeDataGPU.gAMPA[postNId] += *ampa_ptr;
+				atomicAdd(&runtimeDataGPU.gAMPA[postNId], *ampa_ptr);
 				float* nmdad_ptr = getNMDADSynGPtr(postNId, j);	
 				*nmdad_ptr *= runtimeDataGPU.stp_dNMDA[cum_pos+j];
 				if (networkConfigGPU.sim_with_NMDA_rise) {
 					float* nmdar_ptr = getNMDARSynGPtr(postNId, j);	
 					*nmdar_ptr *= runtimeDataGPU.stp_rNMDA[cum_pos+j];
-					runtimeDataGPU.gNMDA_r[postNId] += *nmdar_ptr;
-					runtimeDataGPU.gNMDA_d[postNId] += *nmdad_ptr;
+					//runtimeDataGPU.gNMDA_r[postNId] += *nmdar_ptr;
+					//runtimeDataGPU.gNMDA_d[postNId] += *nmdad_ptr;
+					atomicAdd(&runtimeDataGPU.gNMDA_r[postNId], *nmdar_ptr);
+					atomicAdd(&runtimeDataGPU.gNMDA_d[postNId], *nmdad_ptr);
 				}
 				else {
 					runtimeDataGPU.gNMDA[postNId] += *nmdad_ptr;
+					atomicAdd(&runtimeDataGPU.gNMDA[postNId], *nmdad_ptr);
 				}
 				float* gabaa_ptr = getGABAASynGPtr(postNId, j);	
 				*gabaa_ptr *= runtimeDataGPU.stp_dGABAa[cum_pos+j];
-				runtimeDataGPU.gGABAa[postNId] -= *gabaa_ptr;
+				//runtimeDataGPU.gGABAa[postNId] -= *gabaa_ptr;
+				atomicAdd(&runtimeDataGPU.gGABAa[postNId], *gabaa_ptr * -1);
 				float* gababd_ptr = getGABABDSynGPtr(postNId, j);	
 				*gababd_ptr *= runtimeDataGPU.stp_dGABAb[cum_pos+j];
 				if (networkConfigGPU.sim_with_GABAb_rise) {
 					float* gababr_ptr = getGABABRSynGPtr(postNId, j);	
 					*gababr_ptr *= runtimeDataGPU.stp_rGABAb[cum_pos+j];
-					runtimeDataGPU.gGABAb_r[postNId] -= *gababr_ptr;
-					runtimeDataGPU.gGABAb_d[postNId] -= *gababd_ptr;
+					//runtimeDataGPU.gGABAb_r[postNId] -= *gababr_ptr;
+					//runtimeDataGPU.gGABAb_d[postNId] -= *gababd_ptr;
+					atomicAdd(&runtimeDataGPU.gGABAb_r[postNId], *gababr_ptr * -1);
+					atomicAdd(&runtimeDataGPU.gGABAb_d[postNId], *gababd_ptr * -1);
 				}
 				else {
-					runtimeDataGPU.gGABAb[postNId] -= *gababd_ptr;
+					//runtimeDataGPU.gGABAb[postNId] -= *gababd_ptr;
+					atomicAdd(&runtimeDataGPU.gGABAb[postNId], *gababd_ptr * -1);
 				}
 				//if (t>242 && t<246) {
 				if (t>44 && t<90) {
