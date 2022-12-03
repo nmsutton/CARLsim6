@@ -779,12 +779,6 @@ typedef struct RuntimeData_s {
 	float* GABAa_syn_g;
 	float* GABAb_d_syn_g;
 	float* GABAb_r_syn_g;
-	int* grpTotN;
-	int* synIsPreId;
-	int* synIsPostId;
-	int* numSyn;
-	int* numSynTmp;
-	int* numPostSyn;
 #endif	
 
 	int* I_set; //!< an array of bits indicating which synapse got a spike

@@ -1036,7 +1036,6 @@ private:
 	void doSTPUpdateAndDecayCond_GPU(int netId);
 	void deleteRuntimeData_GPU(int netId);		//!< deallocates all used data structures in snn_gpu.cu
 	void findFiring_GPU(int netId);
-	void setGrpTotN(int netId);
 	void globalStateUpdate_C_GPU(int netId);
 	void globalStateUpdate_N_GPU(int netId);
 	void globalStateUpdate_G_GPU(int netId);
@@ -1056,8 +1055,7 @@ private:
 	void doCurrentUpdateD2_GPU(int netId) { assert(false); }
 	void doSTPUpdateAndDecayCond_GPU(int netId) { assert(false); }
 	void deleteRuntimeData_GPU(int netId) { assert(false); }		//!< deallocates all used data structures in snn_gpu.cu
-	void findFiring_GPU(int netId) { assert(false); }
-	void setGrpTotN(int netId);	
+	void findFiring_GPU(int netId) { assert(false); }	
 	void globalStateUpdate_C_GPU(int netId) { assert(false); }
 	void globalStateUpdate_N_GPU(int netId) { assert(false); }
 	void globalStateUpdate_G_GPU(int netId) { assert(false); }
@@ -1088,7 +1086,6 @@ private:
 	void copyConductanceNMDA(int netId, int lGrpId, RuntimeData* dest, RuntimeData* src, cudaMemcpyKind kind, bool allocateMem, int destOffset);
 	void copyConductanceGABAa(int netId, int lGrpId, RuntimeData* dest, RuntimeData* src, cudaMemcpyKind kind, bool allocateMem, int destOffset);
 	void copyConductanceGABAb(int netId, int lGrpId, RuntimeData* dest, RuntimeData* src, cudaMemcpyKind kind, bool allocateMem, int destOffset);
-	void copyAllSynI(int netId, int lGrpId, RuntimeData* dest, RuntimeData* src, cudaMemcpyKind kind, bool allocateMem, int destOffset); // NS addition
 	void copyPreConnectionInfo(int netId, int lGrpId, RuntimeData* dest, RuntimeData* src, cudaMemcpyKind kind, bool allocateMem);
 	void copyPostConnectionInfo(int netId, int lGrpId, RuntimeData* dest, RuntimeData* src, cudaMemcpyKind kind, bool allocateMem);
 	void copyExternalCurrent(int netId, int lGrpId, RuntimeData* dest, cudaMemcpyKind kind, bool allocateMem);
@@ -1129,7 +1126,6 @@ private:
 	void copyConductanceNMDA(int netId, int lGrpId, RuntimeData* dest, RuntimeData* src, cudaMemcpyKind kind, bool allocateMem, int destOffset) { assert(false); }
 	void copyConductanceGABAa(int netId, int lGrpId, RuntimeData* dest, RuntimeData* src, cudaMemcpyKind kind, bool allocateMem, int destOffset) { assert(false); }
 	void copyConductanceGABAb(int netId, int lGrpId, RuntimeData* dest, RuntimeData* src, cudaMemcpyKind kind, bool allocateMem, int destOffset) { assert(false); }
-	void copyAllSynI(int netId, int lGrpId, RuntimeData* dest, RuntimeData* src, cudaMemcpyKind kind, bool allocateMem, int destOffset) { assert(false); }; // NS addition
 	void copyPreConnectionInfo(int netId, int lGrpId, RuntimeData* dest, RuntimeData* src, cudaMemcpyKind kind, bool allocateMem) { assert(false); }
 	void copyPostConnectionInfo(int netId, int lGrpId, RuntimeData* dest, RuntimeData* src, cudaMemcpyKind kind, bool allocateMem) { assert(false); }
 	void copyExternalCurrent(int netId, int lGrpId, RuntimeData* dest, cudaMemcpyKind kind, bool allocateMem) { assert(false); }
@@ -1223,7 +1219,6 @@ private:
 	void copyConductanceNMDA(int netId, int lGrpId, RuntimeData* dest, RuntimeData* src, bool allocateMem, int destOffset);
 	void copyConductanceGABAa(int netId, int lGrpId, RuntimeData* dest, RuntimeData* src, bool allocateMem, int destOffset);
 	void copyConductanceGABAb(int netId, int lGrpId, RuntimeData* dest, RuntimeData* src, bool allocateMem, int destOffset);
-	void copyAllSynI(int netId, int lGrpId, RuntimeData* dest, RuntimeData* src, bool allocateMem, int destOffset); // NS addition
 	void copyPreConnectionInfo(int netId, int lGrpId, RuntimeData* dest, RuntimeData* src, bool allocateMem);
 	void copyPostConnectionInfo(int netId, int lGrpId, RuntimeData* dest, RuntimeData* src, bool allocateMem);
 	void copyExternalCurrent(int netId, int lGrpId, RuntimeData* dest, bool allocateMem);

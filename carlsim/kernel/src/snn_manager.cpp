@@ -3388,22 +3388,6 @@ void SNN::allocateManagerRuntimeData() {
 	memset(managerRuntimeData.gGABAb_d, 0, sizeof(float) * managerRTDSize.glbNumNReg);
 	memset(managerRuntimeData.gGABAb, 0, sizeof(float) * managerRTDSize.glbNumNReg);
 
-#ifdef JK_CA3_SNN
-	// NS addition	
-	managerRuntimeData.grpTotN = new int[100]; // assuming max number of neuron groups is 10. TODO: find variable storing this rather than hardcoding 100 here.
-	managerRuntimeData.synIsPreId = new int[managerRTDSize.maxNumPreSynNet];
-	managerRuntimeData.synIsPostId = new int[managerRTDSize.maxNumPostSynNet];
-	managerRuntimeData.numSyn = new int;
-	managerRuntimeData.numSynTmp = new int;
-	managerRuntimeData.numPostSyn = new int[100000];
-	memset(managerRuntimeData.grpTotN, 0, sizeof(int) * 100);
-	memset(managerRuntimeData.synIsPreId, 0, sizeof(int) * managerRTDSize.maxNumPreSynNet);
-	memset(managerRuntimeData.synIsPostId, 0, sizeof(int) * managerRTDSize.maxNumPostSynNet);
-	memset(managerRuntimeData.numSyn, 0, sizeof(int));	
-	memset(managerRuntimeData.numSynTmp, 0, sizeof(int));	
-	memset(managerRuntimeData.numPostSyn, 0, sizeof(int) * 100000);
-#endif
-
 	// allocate neuromodulators and their assistive buffers
 	managerRuntimeData.grpDA  = new float[managerRTDSize.maxNumGroups];
 	managerRuntimeData.grp5HT = new float[managerRTDSize.maxNumGroups];
@@ -7525,18 +7509,6 @@ void SNN::deleteManagerRuntimeData() {
 	if (managerRuntimeData.gGABAb_d!=NULL) delete[] managerRuntimeData.gGABAb_d;
 	managerRuntimeData.gAMPA=NULL; managerRuntimeData.gNMDA=NULL; managerRuntimeData.gNMDA_r=NULL; managerRuntimeData.gNMDA_d=NULL;
 	managerRuntimeData.gGABAa=NULL; managerRuntimeData.gGABAb=NULL; managerRuntimeData.gGABAb_r=NULL; managerRuntimeData.gGABAb_d=NULL;
-	#ifdef JK_CA3_SNN
-		// NS addition	
-		if (managerRuntimeData.grpTotN!=NULL) delete[] managerRuntimeData.grpTotN;	
-		if (managerRuntimeData.synIsPreId!=NULL) delete[] managerRuntimeData.synIsPreId;
-		if (managerRuntimeData.synIsPostId!=NULL) delete[] managerRuntimeData.synIsPostId;
-		if (managerRuntimeData.numSyn!=NULL) delete[] managerRuntimeData.numSyn;
-		if (managerRuntimeData.numSynTmp!=NULL) delete[] managerRuntimeData.numSynTmp;
-		if (managerRuntimeData.numPostSyn!=NULL) delete[] managerRuntimeData.numPostSyn;
-		managerRuntimeData.grpTotN=NULL; managerRuntimeData.synIsPreId=NULL; 
-		managerRuntimeData.synIsPostId=NULL; managerRuntimeData.numSyn=NULL;
-		managerRuntimeData.numSynTmp=NULL; managerRuntimeData.numPostSyn=NULL;
-	#endif
 
 	if (managerRuntimeData.stpu!=NULL) delete[] managerRuntimeData.stpu;
 	if (managerRuntimeData.stpx!=NULL) delete[] managerRuntimeData.stpx;

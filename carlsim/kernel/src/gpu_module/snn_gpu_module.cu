@@ -174,31 +174,37 @@ __device__ inline unsigned int* getFiringBitGroupPtr(int lNId, int synId) {
 #ifdef JK_CA3_SNN
 __device__ inline void setAMPASynGValue(int post_id, int pre_index, float value) {
 	float* tmp_ampa_p = ((float*)((char*)runtimeDataGPU.AMPA_syn_g + pre_index * networkConfigGPU.syn_gPitch) + post_id);
+	//*tmp_ampa_p += value;
 	atomicAdd(tmp_ampa_p, *tmp_ampa_p + value);
 }
 
 __device__ inline void setNMDADSynGValue(int post_id, int pre_index, float value) {
 	float* tmp_ampa_p = ((float*)((char*)runtimeDataGPU.NMDA_d_syn_g + pre_index * networkConfigGPU.syn_gPitch) + post_id);
+	//*tmp_ampa_p += value;
 	atomicAdd(tmp_ampa_p, *tmp_ampa_p + value);
 }
 
 __device__ inline void setNMDARSynGValue(int post_id, int pre_index, float value) {
 	float* tmp_ampa_p = ((float*)((char*)runtimeDataGPU.NMDA_r_syn_g + pre_index * networkConfigGPU.syn_gPitch) + post_id);
+	//*tmp_ampa_p += value;
 	atomicAdd(tmp_ampa_p, *tmp_ampa_p + value);
 }
 
 __device__ inline void setGABAASynGValue(int post_id, int pre_index, float value) {
 	float* tmp_ampa_p = ((float*)((char*)runtimeDataGPU.GABAa_syn_g + pre_index * networkConfigGPU.syn_gPitch) + post_id);
+	//*tmp_ampa_p += value;
 	atomicAdd(tmp_ampa_p, *tmp_ampa_p + value);
 }
 
 __device__ inline void setGABABDSynGValue(int post_id, int pre_index, float value) {
 	float* tmp_ampa_p = ((float*)((char*)runtimeDataGPU.GABAb_d_syn_g + pre_index * networkConfigGPU.syn_gPitch) + post_id);
+	//*tmp_ampa_p += value;
 	atomicAdd(tmp_ampa_p, *tmp_ampa_p + value);
 }
 
 __device__ inline void setGABABRSynGValue(int post_id, int pre_index, float value) {
 	float* tmp_ampa_p = ((float*)((char*)runtimeDataGPU.GABAb_r_syn_g + pre_index * networkConfigGPU.syn_gPitch) + post_id);
+	//*tmp_ampa_p += value;
 	atomicAdd(tmp_ampa_p, *tmp_ampa_p + value);
 }
 
@@ -1894,27 +1900,6 @@ __global__ void kernel_groupStateUpdate(int simTime) {
 	}
 }
 
-__global__ void kernel_initNumPostSyn() {
-	// NS addition
-	// this function stores the number of synapses that neuron ids prior to a 
-	// given neuron id have. It is for synapse id creation
-	int postNIdStart, postNIdEnd, grpSize, preNId, postNId, cum_pos, n_pre;
-	int synCounter = 0;
-	SynInfo preSynInfo;
-
-	for (int gi = 0; gi < networkConfigGPU.numGroups; gi++) {
-		postNIdStart = groupConfigsGPU[gi].lStartN;
-		postNIdEnd = groupConfigsGPU[gi].lEndN;
-		grpSize = (postNIdEnd-postNIdStart+1);
-		for (int i = 0; i < grpSize; i++) {
-			postNId = postNIdStart + i;
-			n_pre = runtimeDataGPU.Npre[postNId];
-			synCounter = synCounter + n_pre;
-			runtimeDataGPU.numPostSyn[postNId] = synCounter;
-		}
-	}
-}
-
 /*! 
  *  \brief Clear conductances before they are regenerated in kernel_STPDecayConductances()
  * 
@@ -3130,32 +3115,6 @@ void SNN::copyConductanceAMPA(int netId, int lGrpId, RuntimeData* dest, RuntimeD
 	CUDA_CHECK_ERRORS(cudaMemcpy(&dest->gAMPA[ptrPos + destOffset], &src->gAMPA[ptrPos], sizeof(float) * length, kind));
 }
 
-void SNN::copyAllSynI(int netId, int lGrpId, RuntimeData* dest, RuntimeData* src, cudaMemcpyKind kind, bool allocateMem, int destOffset) {
-	// NS addition
-	// TODO: this function may be called for every group and copies all synapse data every time.
-	// It could be more efficient to have this copy operation occur less frequently if some copies
-	// are redundant.
-
-	assert(src->grpTotN != NULL);
-	assert(src->synIsPreId != NULL);
-	assert(src->synIsPostId != NULL);
-	assert(src->numSyn != NULL);
-	assert(src->numSynTmp != NULL);
-	assert(src->numPostSyn != NULL);
-	if(allocateMem) CUDA_CHECK_ERRORS(cudaMalloc((void**)&dest->grpTotN, sizeof(int)*100));
-	if(allocateMem) CUDA_CHECK_ERRORS(cudaMalloc((void**)&dest->synIsPreId, sizeof(int) * managerRTDSize.maxNumPreSynNet));
-	if(allocateMem) CUDA_CHECK_ERRORS(cudaMalloc((void**)&dest->synIsPostId, sizeof(int) * managerRTDSize.maxNumPostSynNet));
-	if(allocateMem) CUDA_CHECK_ERRORS(cudaMalloc((void**)&dest->numSyn, sizeof(int)));
-	if(allocateMem) CUDA_CHECK_ERRORS(cudaMalloc((void**)&dest->numSynTmp, sizeof(int)));
-	if(allocateMem) CUDA_CHECK_ERRORS(cudaMalloc((void**)&dest->numPostSyn, sizeof(int)*100000)); // TODO: auto-size to number of neurons in sim
-	CUDA_CHECK_ERRORS(cudaMemcpy(&dest->grpTotN[0], &src->grpTotN[0], sizeof(int) * 100, kind));	
-	CUDA_CHECK_ERRORS(cudaMemcpy(&dest->synIsPreId[0], &src->synIsPreId[0], sizeof(int) * managerRTDSize.maxNumPreSynNet, kind));	
-	CUDA_CHECK_ERRORS(cudaMemcpy(&dest->synIsPostId[0], &src->synIsPostId[0], sizeof(int) * managerRTDSize.maxNumPostSynNet, kind));		
-	CUDA_CHECK_ERRORS(cudaMemcpy(&dest->numSyn[0], &src->numSyn[0], sizeof(int), kind));	
-	CUDA_CHECK_ERRORS(cudaMemcpy(&dest->numSynTmp[0], &src->numSynTmp[0], sizeof(int), kind));
-	CUDA_CHECK_ERRORS(cudaMemcpy(&dest->numPostSyn[0], &src->numPostSyn[0], sizeof(int) * 100000, kind));	
-}
-
 /*!
  * \brief this function allocates device (GPU) memory sapce and copies NMDA conductance to it
  *
@@ -3388,7 +3347,6 @@ void SNN::copyNeuronState(int netId, int lGrpId, RuntimeData* dest, cudaMemcpyKi
 		copyConductanceGABAa(netId, lGrpId, dest, &managerRuntimeData, cudaMemcpyHostToDevice, allocateMem, 0);
 		copyConductanceGABAb(netId, lGrpId, dest, &managerRuntimeData, cudaMemcpyHostToDevice, allocateMem, 0);
 	}
-	copyAllSynI(netId, lGrpId, dest, &managerRuntimeData, cudaMemcpyHostToDevice, allocateMem, 0);
 
 	// copying external current needs to be done separately because setExternalCurrent needs to call it, too
 	// do it only from host to device
@@ -4257,7 +4215,6 @@ void SNN::doSTPUpdateAndDecayCond_GPU(int netId) {
 	checkAndSetGPUDevice(netId);
 
 	if (sim_with_stp || sim_with_conductances) {
-		if (simTimeMs==0) {kernel_initNumPostSyn<<<1, 1>>>();}
 		SNN::resetConductancesGPU(netId);
 		kernel_STPDecayConductances<<<NUM_BLOCKS, NUM_THREADS>>>(simTimeMs, simTimeSec, simTime);
 		kernel_STPUpdateAndDecayConductances<<<NUM_BLOCKS, NUM_THREADS>>>(simTimeMs, simTimeSec, simTime);

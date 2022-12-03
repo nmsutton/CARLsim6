@@ -2459,13 +2459,6 @@ void SNN::copyNeuronState(int netId, int lGrpId, RuntimeData* dest, bool allocat
 		dest->current = new float[length];
 	memcpy(&dest->current[ptrPos], &managerRuntimeData.current[ptrPos], sizeof(float) * length);
 
-// NS addition
-#ifdef JK_CA3_SNN
-	if(sim_with_conductances) {
-		copyAllSynI(netId, lGrpId, dest, &managerRuntimeData, allocateMem, 0);
-	}
-#endif
-
 #ifdef LN_I_CALC_TYPES	
 	if (lGrpId == ALL) {
 	 	// LN20210913 if ommitted  crash at #491: runtimeData[netId].gAMPA[lNId] *= groupConfig.dAMPA;
@@ -2567,24 +2560,6 @@ void SNN::copyConductanceAMPA(int netId, int lGrpId, RuntimeData* dest, RuntimeD
 	if(allocateMem)
 		dest->gAMPA = new float[length];
 	memcpy(&dest->gAMPA[ptrPos + destOffset], &src->gAMPA[ptrPos], sizeof(float) * length);
-}
-
-void SNN::copyAllSynI(int netId, int lGrpId, RuntimeData* dest, RuntimeData* src, bool allocateMem, int destOffset) {
-	// NS addition
-	if(allocateMem) {
-		dest->grpTotN = new int[100]; // cumulative total neurons relative to group numbers. assumes max number of neuron groups is 10.
-		dest->synIsPreId = new int[managerRTDSize.maxNumPreSynNet];
-		dest->synIsPostId = new int[managerRTDSize.maxNumPostSynNet];
-		dest->numSyn = new int();
-		dest->numSynTmp = new int();
-		dest->numPostSyn = new int[100000];
-	}
-	memcpy(&dest->grpTotN, &src->grpTotN, sizeof(int) * 100);
-	memcpy(&dest->synIsPreId, &src->synIsPreId, sizeof(int) * managerRTDSize.maxNumPreSynNet);
-	memcpy(&dest->synIsPostId, &src->synIsPostId, sizeof(int) * managerRTDSize.maxNumPostSynNet);
-	memcpy(&dest->numSyn, &src->numSyn, sizeof(int));
-	memcpy(&dest->numSynTmp, &src->numSynTmp, sizeof(int));
-	memcpy(&dest->numSyn, &src->numPostSyn, sizeof(int) * 100000);
 }
 
 /*!
