@@ -469,19 +469,6 @@ void SNN::copyExtFiringTable(int netId) {
 	}
 #endif
 
-void SNN::test1(int netId) {
-	// NS addition
-	for (int lGrpId = 0; lGrpId < networkConfigs[netId].numGroups; lGrpId++) {
-		for (int lNId = groupConfigs[netId][lGrpId].lStartN; lNId <= groupConfigs[netId][lGrpId].lEndN; lNId++) {
-			unsigned int offset = runtimeData[netId].cumulativePre[lNId];
-			for (int j = 0; j < runtimeData[netId].Npre[lNId]; j++) {
-				int lSId = offset + j;
-				printf("%d %d\n",lNId,lSId);
-			}
-		}
-	}	
-}
-
 #ifdef __NO_PTHREADS__
 	void SNN::doSTPUpdateAndDecayCond_CPU(int netId) {
 #else // POSIX
