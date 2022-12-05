@@ -125,8 +125,8 @@ __device__  int timeTableD1GPU_tex_offset;
 __device__  int timeTableD2GPU_tex_offset;
 
 // NS addition
-__device__  int PRINT_SYNAPSE_SPIKE = 1;
-__device__  int PRINT_CONDUCTANCE_DECAY = 1;
+__device__  int PRINT_SYNAPSE_SPIKE = 0;
+__device__  int PRINT_CONDUCTANCE_DECAY = 0;
 __device__  int PRINT_RECEPTOR_CURRENT = 0;
 __device__  int PRINT_STP_VARIABLES = 0;
 
