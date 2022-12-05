@@ -1001,14 +1001,14 @@ __global__ void kernel_conductanceUpdate (int simTimeMs, int simTimeSec, int sim
 									if (networkConfigGPU.sim_with_NMDA_rise) {
 										NMDA_r_sum = change * d_mulSynSlow[connId] * runtimeDataGPU.stp_sNMDA[pos];
 										NMDA_d_sum = change * d_mulSynSlow[connId] * runtimeDataGPU.stp_sNMDA[pos];
-										setNMDARSynGValue(postNId, wtId, change * d_mulSynSlow[connId] * runtimeDataGPU.stp_sNMDA[pos]);
-										setNMDADSynGValue(postNId, wtId, change * d_mulSynSlow[connId] * runtimeDataGPU.stp_sNMDA[pos]);
+										setNMDARSynGValue(postNId, wtId, NMDA_r_sum);
+										setNMDADSynGValue(postNId, wtId, NMDA_d_sum);
 										runtimeDataGPU.gNMDA_r[postNId] += NMDA_r_sum;
 										runtimeDataGPU.gNMDA_d[postNId] += NMDA_d_sum;
 									}
 									else {
 										NMDA_sum = change * d_mulSynSlow[connId];
-										setNMDADSynGValue(postNId, wtId, change * d_mulSynSlow[connId]);
+										setNMDADSynGValue(postNId, wtId, NMDA_sum);
 										runtimeDataGPU.gNMDA[postNId] += NMDA_sum;
 									}
 								}
