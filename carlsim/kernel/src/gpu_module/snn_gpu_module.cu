@@ -173,63 +173,63 @@ __device__ inline unsigned int* getFiringBitGroupPtr(int lNId, int synId) {
 
 #ifdef JK_CA3_SNN
 __device__ inline void setAMPASynGValue(int post_id, int pre_index, float value) {
-	float* tmp_ampa_p = ((float*)((char*)runtimeDataGPU.AMPA_syn_g + pre_index * networkConfigGPU.syn_gPitch) + post_id);
+	float* tmp_ampa_p = ((float*)((char*)runtimeDataGPU.AMPA_syn_g + post_id * networkConfigGPU.syn_gPitch) + pre_index);
 	//*tmp_ampa_p += value;
 	atomicAdd(tmp_ampa_p, value);
 }
 
 __device__ inline void setNMDADSynGValue(int post_id, int pre_index, float value) {
-	float* tmp_ampa_p = ((float*)((char*)runtimeDataGPU.NMDA_d_syn_g + pre_index * networkConfigGPU.syn_gPitch) + post_id);
+	float* tmp_ampa_p = ((float*)((char*)runtimeDataGPU.NMDA_d_syn_g + post_id * networkConfigGPU.syn_gPitch) + pre_index);
 	//*tmp_ampa_p += value;
 	atomicAdd(tmp_ampa_p, value);
 }
 
 __device__ inline void setNMDARSynGValue(int post_id, int pre_index, float value) {
-	float* tmp_ampa_p = ((float*)((char*)runtimeDataGPU.NMDA_r_syn_g + pre_index * networkConfigGPU.syn_gPitch) + post_id);
+	float* tmp_ampa_p = ((float*)((char*)runtimeDataGPU.NMDA_r_syn_g + post_id * networkConfigGPU.syn_gPitch) + pre_index);
 	//*tmp_ampa_p += value;
 	atomicAdd(tmp_ampa_p, value);
 }
 
 __device__ inline void setGABAASynGValue(int post_id, int pre_index, float value) {
-	float* tmp_ampa_p = ((float*)((char*)runtimeDataGPU.GABAa_syn_g + pre_index * networkConfigGPU.syn_gPitch) + post_id);
+	float* tmp_ampa_p = ((float*)((char*)runtimeDataGPU.GABAa_syn_g + post_id * networkConfigGPU.syn_gPitch) + pre_index);
 	//*tmp_ampa_p += value;
 	atomicAdd(tmp_ampa_p, value);
 }
 
 __device__ inline void setGABABDSynGValue(int post_id, int pre_index, float value) {
-	float* tmp_ampa_p = ((float*)((char*)runtimeDataGPU.GABAb_d_syn_g + pre_index * networkConfigGPU.syn_gPitch) + post_id);
+	float* tmp_ampa_p = ((float*)((char*)runtimeDataGPU.GABAb_d_syn_g + post_id * networkConfigGPU.syn_gPitch) + pre_index);
 	//*tmp_ampa_p += value;
 	atomicAdd(tmp_ampa_p, value);
 }
 
 __device__ inline void setGABABRSynGValue(int post_id, int pre_index, float value) {
-	float* tmp_ampa_p = ((float*)((char*)runtimeDataGPU.GABAb_r_syn_g + pre_index * networkConfigGPU.syn_gPitch) + post_id);
+	float* tmp_ampa_p = ((float*)((char*)runtimeDataGPU.GABAb_r_syn_g + post_id * networkConfigGPU.syn_gPitch) + pre_index);
 	//*tmp_ampa_p += value;
 	atomicAdd(tmp_ampa_p, value);
 }
 
 __device__ inline float* getAMPASynGPtr(int post_id, int pre_index) {
-	return (((float*)((char*)runtimeDataGPU.AMPA_syn_g + pre_index * networkConfigGPU.syn_gPitch)) + post_id);
+	return (((float*)((char*)runtimeDataGPU.AMPA_syn_g + post_id * networkConfigGPU.syn_gPitch)) + pre_index);
 }
 
 __device__ inline float* getNMDADSynGPtr(int post_id, int pre_index) {
-	return (((float*)((char*)runtimeDataGPU.NMDA_d_syn_g + pre_index * networkConfigGPU.syn_gPitch)) + post_id);
+	return (((float*)((char*)runtimeDataGPU.NMDA_d_syn_g + post_id * networkConfigGPU.syn_gPitch)) + pre_index);
 }
 
 __device__ inline float* getNMDARSynGPtr(int post_id, int pre_index) {
-	return (((float*)((char*)runtimeDataGPU.NMDA_r_syn_g + pre_index * networkConfigGPU.syn_gPitch)) + post_id);
+	return (((float*)((char*)runtimeDataGPU.NMDA_r_syn_g + post_id * networkConfigGPU.syn_gPitch)) + pre_index);
 }
 
 __device__ inline float* getGABAASynGPtr(int post_id, int pre_index) {
-	return (((float*)((char*)runtimeDataGPU.GABAa_syn_g + pre_index * networkConfigGPU.syn_gPitch)) + post_id);
+	return (((float*)((char*)runtimeDataGPU.GABAa_syn_g + post_id * networkConfigGPU.syn_gPitch)) + pre_index);
 }
 
 __device__ inline float* getGABABDSynGPtr(int post_id, int pre_index) {
-	return (((float*)((char*)runtimeDataGPU.GABAb_d_syn_g + pre_index * networkConfigGPU.syn_gPitch)) + post_id);
+	return (((float*)((char*)runtimeDataGPU.GABAb_d_syn_g + post_id * networkConfigGPU.syn_gPitch)) + pre_index);
 }
 
 __device__ inline float* getGABABRSynGPtr(int post_id, int pre_index) {
-	return (((float*)((char*)runtimeDataGPU.GABAb_r_syn_g + pre_index * networkConfigGPU.syn_gPitch)) + post_id);
+	return (((float*)((char*)runtimeDataGPU.GABAb_r_syn_g + post_id * networkConfigGPU.syn_gPitch)) + pre_index);
 }
 #endif
 
@@ -3855,12 +3855,12 @@ void SNN::copyAuxiliaryData(int netId, int lGrpId, RuntimeData* dest, cudaMemcpy
 	if(allocateMem) {
 		networkConfigs[netId].syn_gLength = networkConfigs[netId].maxNumPreSynN;
 		//printf("maxNumPreSynN: %d I_setPitch: %d\n",networkConfigs[netId].maxNumPreSynN,networkConfigs[netId].I_setPitch);
-		CUDA_CHECK_ERRORS(cudaMallocPitch((void**)&dest->AMPA_syn_g, &networkConfigs[netId].syn_gPitch, sizeof(float) * networkConfigs[netId].numNReg, networkConfigs[netId].syn_gLength));
-		CUDA_CHECK_ERRORS(cudaMallocPitch((void**)&dest->NMDA_d_syn_g, &networkConfigs[netId].syn_gPitch, sizeof(float) * networkConfigs[netId].numNReg, networkConfigs[netId].syn_gLength));
-		CUDA_CHECK_ERRORS(cudaMallocPitch((void**)&dest->NMDA_r_syn_g, &networkConfigs[netId].syn_gPitch, sizeof(float) * networkConfigs[netId].numNReg, networkConfigs[netId].syn_gLength));
-		CUDA_CHECK_ERRORS(cudaMallocPitch((void**)&dest->GABAa_syn_g, &networkConfigs[netId].syn_gPitch, sizeof(float) * networkConfigs[netId].numNReg, networkConfigs[netId].syn_gLength));
-		CUDA_CHECK_ERRORS(cudaMallocPitch((void**)&dest->GABAb_d_syn_g, &networkConfigs[netId].syn_gPitch, sizeof(float) * networkConfigs[netId].numNReg, networkConfigs[netId].syn_gLength));
-		CUDA_CHECK_ERRORS(cudaMallocPitch((void**)&dest->GABAb_r_syn_g, &networkConfigs[netId].syn_gPitch, sizeof(float) * networkConfigs[netId].numNReg, networkConfigs[netId].syn_gLength));				
+		CUDA_CHECK_ERRORS(cudaMallocPitch((void**)&dest->AMPA_syn_g, &networkConfigs[netId].syn_gPitch, networkConfigs[netId].syn_gLength, sizeof(float) * networkConfigs[netId].numNReg));
+		CUDA_CHECK_ERRORS(cudaMallocPitch((void**)&dest->NMDA_d_syn_g, &networkConfigs[netId].syn_gPitch, networkConfigs[netId].syn_gLength, sizeof(float) * networkConfigs[netId].numNReg));
+		CUDA_CHECK_ERRORS(cudaMallocPitch((void**)&dest->NMDA_r_syn_g, &networkConfigs[netId].syn_gPitch, networkConfigs[netId].syn_gLength, sizeof(float) * networkConfigs[netId].numNReg));
+		CUDA_CHECK_ERRORS(cudaMallocPitch((void**)&dest->GABAa_syn_g, &networkConfigs[netId].syn_gPitch, networkConfigs[netId].syn_gLength, sizeof(float) * networkConfigs[netId].numNReg));
+		CUDA_CHECK_ERRORS(cudaMallocPitch((void**)&dest->GABAb_d_syn_g, &networkConfigs[netId].syn_gPitch, networkConfigs[netId].syn_gLength, sizeof(float) * networkConfigs[netId].numNReg));
+		CUDA_CHECK_ERRORS(cudaMallocPitch((void**)&dest->GABAb_r_syn_g, &networkConfigs[netId].syn_gPitch, networkConfigs[netId].syn_gLength, sizeof(float) * networkConfigs[netId].numNReg));				
 	}
 	assert(networkConfigs[netId].syn_gPitch > 0 || networkConfigs[netId].maxNumPreSynN == 0);
 	CUDA_CHECK_ERRORS(cudaMemset(dest->AMPA_syn_g, 0, networkConfigs[netId].syn_gPitch * networkConfigs[netId].syn_gLength));
