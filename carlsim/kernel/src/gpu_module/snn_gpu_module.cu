@@ -125,8 +125,8 @@ __device__  int timeTableD1GPU_tex_offset;
 __device__  int timeTableD2GPU_tex_offset;
 
 // NS addition
-__device__  int PRINT_SYNAPSE_SPIKE = 0;
-__device__  int PRINT_CONDUCTANCE_DECAY = 0;
+__device__  int PRINT_SYNAPSE_SPIKE = 1;
+__device__  int PRINT_CONDUCTANCE_DECAY = 1;
 __device__  int PRINT_RECEPTOR_CURRENT = 0;
 __device__  int PRINT_STP_VARIABLES = 0;
 
@@ -175,37 +175,37 @@ __device__ inline unsigned int* getFiringBitGroupPtr(int lNId, int synId) {
 __device__ inline void setAMPASynGValue(int post_id, int pre_index, float value) {
 	float* tmp_ampa_p = ((float*)((char*)runtimeDataGPU.AMPA_syn_g + pre_index * networkConfigGPU.syn_gPitch) + post_id);
 	//*tmp_ampa_p += value;
-	atomicAdd(tmp_ampa_p, *tmp_ampa_p + value);
+	atomicAdd(tmp_ampa_p, value);
 }
 
 __device__ inline void setNMDADSynGValue(int post_id, int pre_index, float value) {
 	float* tmp_ampa_p = ((float*)((char*)runtimeDataGPU.NMDA_d_syn_g + pre_index * networkConfigGPU.syn_gPitch) + post_id);
 	//*tmp_ampa_p += value;
-	atomicAdd(tmp_ampa_p, *tmp_ampa_p + value);
+	atomicAdd(tmp_ampa_p, value);
 }
 
 __device__ inline void setNMDARSynGValue(int post_id, int pre_index, float value) {
 	float* tmp_ampa_p = ((float*)((char*)runtimeDataGPU.NMDA_r_syn_g + pre_index * networkConfigGPU.syn_gPitch) + post_id);
 	//*tmp_ampa_p += value;
-	atomicAdd(tmp_ampa_p, *tmp_ampa_p + value);
+	atomicAdd(tmp_ampa_p, value);
 }
 
 __device__ inline void setGABAASynGValue(int post_id, int pre_index, float value) {
 	float* tmp_ampa_p = ((float*)((char*)runtimeDataGPU.GABAa_syn_g + pre_index * networkConfigGPU.syn_gPitch) + post_id);
 	//*tmp_ampa_p += value;
-	atomicAdd(tmp_ampa_p, *tmp_ampa_p + value);
+	atomicAdd(tmp_ampa_p, value);
 }
 
 __device__ inline void setGABABDSynGValue(int post_id, int pre_index, float value) {
 	float* tmp_ampa_p = ((float*)((char*)runtimeDataGPU.GABAb_d_syn_g + pre_index * networkConfigGPU.syn_gPitch) + post_id);
 	//*tmp_ampa_p += value;
-	atomicAdd(tmp_ampa_p, *tmp_ampa_p + value);
+	atomicAdd(tmp_ampa_p, value);
 }
 
 __device__ inline void setGABABRSynGValue(int post_id, int pre_index, float value) {
 	float* tmp_ampa_p = ((float*)((char*)runtimeDataGPU.GABAb_r_syn_g + pre_index * networkConfigGPU.syn_gPitch) + post_id);
 	//*tmp_ampa_p += value;
-	atomicAdd(tmp_ampa_p, *tmp_ampa_p + value);
+	atomicAdd(tmp_ampa_p, value);
 }
 
 __device__ inline float* getAMPASynGPtr(int post_id, int pre_index) {
