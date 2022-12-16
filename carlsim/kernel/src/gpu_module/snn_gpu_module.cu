@@ -1511,110 +1511,6 @@ __device__ void updateNeuronState(int nid, int grpId, int simTimeMs, bool lastIt
 				}
 			}
 			else {
-				if (v_next > vpeak) {
-					v_next = vpeak; // break the loop but evaluate u[i]
-					runtimeDataGPU.curSpike[nid] = true;
-					v_next = runtimeDataGPU.Izh_c[nid];
-					u += runtimeDataGPU.Izh_d[nid];
-					if (lastIteration) {
-						//                         if (nid >= 0 && nid <= 100) {
-						//                             printf("Last iteration ");
-						//                             printf("%d %d %d \n",grpId,nid,runtimeDataGPU.Izh_ref_c[nid]);
-						//                         }
-						//                         if (groupConfigsGPU[grpId].netId == 0 && grpId == 3) {
-						//                             if (nid >= 5326 && nid <= 5335) {
-						//                             printf("Last iteration for %d %d %d %d at %d ms, curr_spike %d \n",
-						//                                    groupConfigsGPU[grpId].netId,
-						//                                    grpId,nid,runtimeDataGPU.Izh_ref_c[nid],simTimeMs,
-						//                                    runtimeDataGPU.curSpike[nid]);
-						//                             }
-						//                         }
-						//                         else if (groupConfigsGPU[grpId].netId == 2 && grpId == 0) {
-						//                             if (nid >= 0 && nid <= 14) {
-						//                             printf("Last iteration for %d %d %d %d at %d ms, curr_spike %d \n",
-						//                                    groupConfigsGPU[grpId].netId,
-						//                                    grpId,nid,runtimeDataGPU.Izh_ref_c[nid],simTimeMs,
-						//                                    runtimeDataGPU.curSpike[nid]);
-						//                             }
-						//                         }
-						runtimeDataGPU.Izh_ref_c[nid] = Izh_ref;
-
-						//                         if (groupConfigsGPU[grpId].netId == 0 && grpId == 3) {
-						//                             if (nid >= 5326 && nid <= 5335) {
-						//                             printf("Last iteration for %d %d %d %d at %d ms, curr_spike %d \n",
-						//                                    groupConfigsGPU[grpId].netId,
-						//                                    grpId,nid,runtimeDataGPU.Izh_ref_c[nid],simTimeMs,
-						//                                    runtimeDataGPU.curSpike[nid]);
-						//                             }
-						//                         }
-						//                         else if (groupConfigsGPU[grpId].netId == 2 && grpId == 0) {
-						//                             if (nid >= 0 && nid <= 14) {
-						//                             printf("Last iteration for %d %d %d %d at %d ms, curr_spike %d \n",
-						//                                    groupConfigsGPU[grpId].netId,
-						//                                    grpId,nid,runtimeDataGPU.Izh_ref_c[nid],simTimeMs,
-						//                                    runtimeDataGPU.curSpike[nid]);
-						//                             }
-						//                         }
-						//                         if (grpId == 1) {
-						//                             if (nid >= 9718 && nid <= 9727) {
-						//                             printf("Last iteration for %d %d %d at %d ms \n",grpId,nid,runtimeDataGPU.Izh_ref_c[nid],simTimeMs);
-						//                             }
-						//                         }
-						//                         if (nid >= 0 && nid <= 100) {
-						//                             printf("Last iteration ");
-						//                             printf("%d %d %d \n",grpId,nid,runtimeDataGPU.Izh_ref_c[nid]);
-						//                         }
-					}
-					else {
-						//                         if (nid >= 0 && nid <= 100) {
-						//                             printf("Increasing refractory ");
-						//                             printf("%d %d %d \n",grpId,nid,runtimeDataGPU.Izh_ref_c[nid]);
-						//                         }
-						//                         if (groupConfigsGPU[grpId].netId == 0 && grpId == 3) {
-						//                             if (nid >= 5326 && nid <= 5335) {
-						//                             printf("Increasing Refractory for %d %d %d %d at %d ms, curr_spike %d \n",
-						//                                    groupConfigsGPU[grpId].netId,
-						//                                    grpId,nid,runtimeDataGPU.Izh_ref_c[nid],simTimeMs,
-						//                                    runtimeDataGPU.curSpike[nid]);
-						//                             }
-						//                         }
-						//                         else if (groupConfigsGPU[grpId].netId == 2 && grpId == 0) {
-						//                             if (nid >= 0 && nid <= 14) {
-						//                             printf("Increasing Refractory for %d %d %d %d at %d ms, curr_spike %d \n",
-						//                                    groupConfigsGPU[grpId].netId,
-						//                                    grpId,nid,runtimeDataGPU.Izh_ref_c[nid],simTimeMs,
-						//                                    runtimeDataGPU.curSpike[nid]);
-						//                             }
-						//                         }
-						runtimeDataGPU.Izh_ref_c[nid] = Izh_ref + 1;
-						//                         if (groupConfigsGPU[grpId].netId == 0 && grpId == 3) {
-						//                             if (nid >= 5326 && nid <= 5335) {
-						//                             printf("Increased Refractory for %d %d %d %d at %d ms, curr_spike %d \n",
-						//                                    groupConfigsGPU[grpId].netId,
-						//                                    grpId,nid,runtimeDataGPU.Izh_ref_c[nid],simTimeMs,
-						//                                    runtimeDataGPU.curSpike[nid]);
-						//                             }
-						//                         }
-						//                         else if (groupConfigsGPU[grpId].netId == 2 && grpId == 0) {
-						//                             if (nid >= 0 && nid <= 14) {
-						//                             printf("Increased Refractory for %d %d %d %d at %d ms, curr_spike %d \n",
-						//                                    groupConfigsGPU[grpId].netId,
-						//                                    grpId,nid,runtimeDataGPU.Izh_ref_c[nid],simTimeMs,
-						//                                    runtimeDataGPU.curSpike[nid]);
-						//                             }
-						//                         }
-						//                         if (grpId == 1) {
-						//                             if (nid >= 9718 && nid <= 9727) {
-						//                             printf("Increasing Refractory for %d %d %d at %d ms \n",grpId,nid,runtimeDataGPU.Izh_ref_c[nid],simTimeMs);
-						//                             }
-						//                         }
-						//                         if (nid >= 0 && nid <= 100) {
-						//                             printf("Increasing refractory ");
-						//                             printf("%d %d %d \n",grpId,nid,runtimeDataGPU.Izh_ref_c[nid]);
-						//                         }
-					}
-				}
-				else {
 					// 9-param Izhikevich
 					float k1 = dvdtIzhikevich9(v, u, inverse_C, k, vr, vt, totalCurrent,
 						timeStep);
@@ -1634,10 +1530,18 @@ __device__ void updateNeuronState(int nid, int grpId, int simTimeMs, bool lastIt
 
 					v_next = v + (1.0f / 6.0f) * (k1 + 2.0f * k2 + 2.0f * k3 + k4);
 
+                    if (v_next > vpeak) {
+                        v_next = vpeak; // break the loop but evaluate u[i]
+                        runtimeDataGPU.curSpike[nid] = true;
+                        v_next = runtimeDataGPU.Izh_c[nid];
+                        u += runtimeDataGPU.Izh_d[nid];
+                        if (lastIteration) {
+                            runtimeDataGPU.Izh_ref_c[nid] = Izh_ref;
+                        }
+                    }
 					if (v_next < -90.0f) v_next = -90.0f;
 
 					u += (1.0f / 6.0f) * (l1 + 2.0f * l2 + 2.0f * l3 + l4);
-				}
 			}
 		}
 #else
