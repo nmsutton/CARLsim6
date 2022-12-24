@@ -35,3 +35,5 @@ endif()
  
 
 add_subdirectory(CS6_conn_test_CSTP)
+
+add_subdirectory(NoisyCurrent)
