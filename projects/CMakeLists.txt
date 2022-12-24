@@ -33,3 +33,5 @@ endif()
 #    add_subdirectory(benchmarkB)
 #endif()
  
+
+add_subdirectory(CS6_conn_test_CSTP)
