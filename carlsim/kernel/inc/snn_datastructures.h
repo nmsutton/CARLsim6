@@ -773,12 +773,12 @@ typedef struct RuntimeData_s {
 
 #ifdef JK_CA3_SNN
 	// NS addition
-	float* AMPA_syn_g;	
-	float* NMDA_d_syn_g;
-	float* NMDA_r_syn_g;
-	float* GABAa_syn_g;
-	float* GABAb_d_syn_g;
-	float* GABAb_r_syn_g;
+	double* AMPA_syn_g;	
+	double* NMDA_d_syn_g;
+	double* NMDA_r_syn_g;
+	double* GABAa_syn_g;
+	double* GABAb_d_syn_g;
+	double* GABAb_r_syn_g;
 #endif	
 
 	int* I_set; //!< an array of bits indicating which synapse got a spike

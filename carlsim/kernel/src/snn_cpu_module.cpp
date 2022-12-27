@@ -3113,12 +3113,12 @@ void SNN::copyAuxiliaryData(int netId, int lGrpId, RuntimeData* dest, bool alloc
 #if JK_CA3_SNN
 	if(allocateMem) {
 		networkConfigs[netId].syn_gLength = networkConfigs[netId].maxNumPreSynN;
-		dest->AMPA_syn_g = new float[networkConfigs[netId].numNReg * networkConfigs[netId].syn_gLength];
-		dest->NMDA_d_syn_g = new float[networkConfigs[netId].numNReg * networkConfigs[netId].syn_gLength];
-		dest->NMDA_r_syn_g = new float[networkConfigs[netId].numNReg * networkConfigs[netId].syn_gLength];
-		dest->GABAa_syn_g = new float[networkConfigs[netId].numNReg * networkConfigs[netId].syn_gLength];
-		dest->GABAb_d_syn_g = new float[networkConfigs[netId].numNReg * networkConfigs[netId].syn_gLength];
-		dest->GABAb_r_syn_g = new float[networkConfigs[netId].numNReg * networkConfigs[netId].syn_gLength];		
+		dest->AMPA_syn_g = new double[networkConfigs[netId].numNReg * networkConfigs[netId].syn_gLength];
+		dest->NMDA_d_syn_g = new double[networkConfigs[netId].numNReg * networkConfigs[netId].syn_gLength];
+		dest->NMDA_r_syn_g = new double[networkConfigs[netId].numNReg * networkConfigs[netId].syn_gLength];
+		dest->GABAa_syn_g = new double[networkConfigs[netId].numNReg * networkConfigs[netId].syn_gLength];
+		dest->GABAb_d_syn_g = new double[networkConfigs[netId].numNReg * networkConfigs[netId].syn_gLength];
+		dest->GABAb_r_syn_g = new double[networkConfigs[netId].numNReg * networkConfigs[netId].syn_gLength];		
 	}
 	assert(networkConfigs[netId].maxNumPreSynN >= 0);
 	memset(dest->AMPA_syn_g, 0, networkConfigs[netId].numNReg * networkConfigs[netId].syn_gLength);
