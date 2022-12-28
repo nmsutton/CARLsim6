@@ -172,40 +172,35 @@ __device__ inline unsigned int* getFiringBitGroupPtr(int lNId, int synId) {
 }
 
 #ifdef JK_CA3_SNN
+#ifdef CSTP_DOUBLES
 __device__ inline void setAMPASynGValue(int post_id, int pre_index, double value) {
-	double* tmp_ampa_p = ((double*)((char*)runtimeDataGPU.AMPA_syn_g + post_id * networkConfigGPU.syn_gPitch) + pre_index);
-	//*tmp_ampa_p += value;
-	atomicAdd(tmp_ampa_p, value);
+	double* tmp_p = ((double*)((char*)runtimeDataGPU.AMPA_syn_g + post_id * networkConfigGPU.syn_gPitch) + pre_index);
+	atomicAdd(tmp_p, value);
 }
 
 __device__ inline void setNMDADSynGValue(int post_id, int pre_index, double value) {
-	double* tmp_ampa_p = ((double*)((char*)runtimeDataGPU.NMDA_d_syn_g + post_id * networkConfigGPU.syn_gPitch) + pre_index);
-	//*tmp_ampa_p += value;
-	atomicAdd(tmp_ampa_p, value);
+	double* tmp_p = ((double*)((char*)runtimeDataGPU.NMDA_d_syn_g + post_id * networkConfigGPU.syn_gPitch) + pre_index);
+	atomicAdd(tmp_p, value);
 }
 
 __device__ inline void setNMDARSynGValue(int post_id, int pre_index, double value) {
-	double* tmp_ampa_p = ((double*)((char*)runtimeDataGPU.NMDA_r_syn_g + post_id * networkConfigGPU.syn_gPitch) + pre_index);
-	//*tmp_ampa_p += value;
-	atomicAdd(tmp_ampa_p, value);
+	double* tmp_p = ((double*)((char*)runtimeDataGPU.NMDA_r_syn_g + post_id * networkConfigGPU.syn_gPitch) + pre_index);
+	atomicAdd(tmp_p, value);
 }
 
 __device__ inline void setGABAASynGValue(int post_id, int pre_index, double value) {
-	double* tmp_ampa_p = ((double*)((char*)runtimeDataGPU.GABAa_syn_g + post_id * networkConfigGPU.syn_gPitch) + pre_index);
-	//*tmp_ampa_p += value;
-	atomicAdd(tmp_ampa_p, value);
+	double* tmp_p = ((double*)((char*)runtimeDataGPU.GABAa_syn_g + post_id * networkConfigGPU.syn_gPitch) + pre_index);
+	atomicAdd(tmp_p, value);
 }
 
 __device__ inline void setGABABDSynGValue(int post_id, int pre_index, double value) {
-	double* tmp_ampa_p = ((double*)((char*)runtimeDataGPU.GABAb_d_syn_g + post_id * networkConfigGPU.syn_gPitch) + pre_index);
-	//*tmp_ampa_p += value;
-	atomicAdd(tmp_ampa_p, value);
+	double* tmp_p = ((double*)((char*)runtimeDataGPU.GABAb_d_syn_g + post_id * networkConfigGPU.syn_gPitch) + pre_index);
+	atomicAdd(tmp_p, value);
 }
 
 __device__ inline void setGABABRSynGValue(int post_id, int pre_index, double value) {
-	double* tmp_ampa_p = ((double*)((char*)runtimeDataGPU.GABAb_r_syn_g + post_id * networkConfigGPU.syn_gPitch) + pre_index);
-	//*tmp_ampa_p += value;
-	atomicAdd(tmp_ampa_p, value);
+	double* tmp_p = ((double*)((char*)runtimeDataGPU.GABAb_r_syn_g + post_id * networkConfigGPU.syn_gPitch) + pre_index);
+	atomicAdd(tmp_p, value);
 }
 
 __device__ inline double* getAMPASynGPtr(int post_id, int pre_index) {
@@ -231,6 +226,61 @@ __device__ inline double* getGABABDSynGPtr(int post_id, int pre_index) {
 __device__ inline double* getGABABRSynGPtr(int post_id, int pre_index) {
 	return (((double*)((char*)runtimeDataGPU.GABAb_r_syn_g + post_id * networkConfigGPU.syn_gPitch)) + pre_index);
 }
+#else
+__device__ inline void setAMPASynGValue(int post_id, int pre_index, float value) {
+	float* tmp_p = ((float*)((char*)runtimeDataGPU.AMPA_syn_g + post_id * networkConfigGPU.syn_gPitch) + pre_index);
+	atomicAdd(tmp_p, value);
+}
+
+__device__ inline void setNMDADSynGValue(int post_id, int pre_index, float value) {
+	float* tmp_p = ((float*)((char*)runtimeDataGPU.NMDA_d_syn_g + post_id * networkConfigGPU.syn_gPitch) + pre_index);
+	atomicAdd(tmp_p, value);
+}
+
+__device__ inline void setNMDARSynGValue(int post_id, int pre_index, float value) {
+	float* tmp_p = ((float*)((char*)runtimeDataGPU.NMDA_r_syn_g + post_id * networkConfigGPU.syn_gPitch) + pre_index);
+	atomicAdd(tmp_p, value);
+}
+
+__device__ inline void setGABAASynGValue(int post_id, int pre_index, float value) {
+	float* tmp_p = ((float*)((char*)runtimeDataGPU.GABAa_syn_g + post_id * networkConfigGPU.syn_gPitch) + pre_index);
+	atomicAdd(tmp_p, value);
+}
+
+__device__ inline void setGABABDSynGValue(int post_id, int pre_index, float value) {
+	float* tmp_p = ((float*)((char*)runtimeDataGPU.GABAb_d_syn_g + post_id * networkConfigGPU.syn_gPitch) + pre_index);
+	atomicAdd(tmp_p, value);
+}
+
+__device__ inline void setGABABRSynGValue(int post_id, int pre_index, float value) {
+	float* tmp_p = ((float*)((char*)runtimeDataGPU.GABAb_r_syn_g + post_id * networkConfigGPU.syn_gPitch) + pre_index);
+	atomicAdd(tmp_p, value);
+}
+
+__device__ inline float* getAMPASynGPtr(int post_id, int pre_index) {
+	return (((float*)((char*)runtimeDataGPU.AMPA_syn_g + post_id * networkConfigGPU.syn_gPitch)) + pre_index);
+}
+
+__device__ inline float* getNMDADSynGPtr(int post_id, int pre_index) {
+	return (((float*)((char*)runtimeDataGPU.NMDA_d_syn_g + post_id * networkConfigGPU.syn_gPitch)) + pre_index);
+}
+
+__device__ inline float* getNMDARSynGPtr(int post_id, int pre_index) {
+	return (((float*)((char*)runtimeDataGPU.NMDA_r_syn_g + post_id * networkConfigGPU.syn_gPitch)) + pre_index);
+}
+
+__device__ inline float* getGABAASynGPtr(int post_id, int pre_index) {
+	return (((float*)((char*)runtimeDataGPU.GABAa_syn_g + post_id * networkConfigGPU.syn_gPitch)) + pre_index);
+}
+
+__device__ inline float* getGABABDSynGPtr(int post_id, int pre_index) {
+	return (((float*)((char*)runtimeDataGPU.GABAb_d_syn_g + post_id * networkConfigGPU.syn_gPitch)) + pre_index);
+}
+
+__device__ inline float* getGABABRSynGPtr(int post_id, int pre_index) {
+	return (((float*)((char*)runtimeDataGPU.GABAb_r_syn_g + post_id * networkConfigGPU.syn_gPitch)) + pre_index);
+}
+#endif
 #endif
 
 #ifdef JK_CA3_SNN
@@ -995,40 +1045,66 @@ __global__ void kernel_conductanceUpdate (int simTimeMs, int simTimeSec, int sim
 								short int connId = runtimeDataGPU.connIdsPreIdx[cum_pos + wtId];
 								if (type & TARGET_AMPA)
 									AMPA_sum = change * d_mulSynFast[connId];
-									setAMPASynGValue(postNId, wtId, (double) AMPA_sum); // NS addition
+									#ifdef CSTP_DOUBLES
+										setAMPASynGValue(postNId, wtId, (double) AMPA_sum); // NS addition
+									#else
+										setAMPASynGValue(postNId, wtId, AMPA_sum); // NS addition
+									#endif
 									runtimeDataGPU.gAMPA[postNId] += AMPA_sum;
 								if (type & TARGET_NMDA) {
 									if (networkConfigGPU.sim_with_NMDA_rise) {
 										NMDA_r_sum = change * d_mulSynSlow[connId] * runtimeDataGPU.stp_sNMDA[pos];
 										NMDA_d_sum = change * d_mulSynSlow[connId] * runtimeDataGPU.stp_sNMDA[pos];
-										setNMDARSynGValue(postNId, wtId, (double) NMDA_r_sum);
-										setNMDADSynGValue(postNId, wtId, (double) NMDA_d_sum);
+										#ifdef CSTP_DOUBLES
+											setNMDARSynGValue(postNId, wtId, (double) NMDA_r_sum);
+											setNMDADSynGValue(postNId, wtId, (double) NMDA_d_sum);
+										#else
+											setNMDARSynGValue(postNId, wtId, NMDA_r_sum);
+											setNMDADSynGValue(postNId, wtId, NMDA_d_sum);											
+										#endif
 										runtimeDataGPU.gNMDA_r[postNId] += NMDA_r_sum;
 										runtimeDataGPU.gNMDA_d[postNId] += NMDA_d_sum;
 									}
 									else {
 										NMDA_sum = change * d_mulSynSlow[connId];
-										setNMDADSynGValue(postNId, wtId, (double) NMDA_sum);
+										#ifdef CSTP_DOUBLES
+											setNMDADSynGValue(postNId, wtId, (double) NMDA_sum);
+										#else
+											setNMDADSynGValue(postNId, wtId, NMDA_sum);
+										#endif
 										runtimeDataGPU.gNMDA[postNId] += NMDA_sum;
 										//if (simTimeMs>200&&simTimeMs<300) {printf("NMDA_sum:%f gnmda:%f \n",NMDA_sum,runtimeDataGPU.gNMDA[postNId]);}
 									}
 								}
 								if (type & TARGET_GABAa)
 									GABAa_sum = change * d_mulSynFast[connId];
-									setGABAASynGValue(postNId, wtId, (double) GABAa_sum*-1); 
+									#ifdef CSTP_DOUBLES
+										setGABAASynGValue(postNId, wtId, (double) GABAa_sum*-1); 
+									#else
+										setGABAASynGValue(postNId, wtId, GABAa_sum*-1);
+									#endif
 									runtimeDataGPU.gGABAa[postNId] -= GABAa_sum; // wt should be negative for GABAa and GABAb
 								if (type & TARGET_GABAb) {
 									if (networkConfigGPU.sim_with_GABAb_rise) {
 										GABAb_r_sum = change * d_mulSynSlow[connId] * runtimeDataGPU.stp_sGABAb[pos];
 										GABAb_d_sum = change * d_mulSynSlow[connId] * runtimeDataGPU.stp_sGABAb[pos];
-										setGABABDSynGValue(postNId, wtId, (double) GABAb_r_sum*-1);
-										setGABABRSynGValue(postNId, wtId, (double) GABAb_d_sum*-1);
+										#ifdef CSTP_DOUBLES
+											setGABABDSynGValue(postNId, wtId, (double) GABAb_r_sum*-1);
+											setGABABRSynGValue(postNId, wtId, (double) GABAb_d_sum*-1);
+										#else
+											setGABABDSynGValue(postNId, wtId, GABAb_r_sum*-1);
+											setGABABRSynGValue(postNId, wtId, GABAb_d_sum*-1);	
+										#endif
 										runtimeDataGPU.gGABAb_r[postNId] -= GABAb_r_sum;
 										runtimeDataGPU.gGABAb_d[postNId] -= GABAb_d_sum;
 									}
 									else {
 										GABAb_sum = change * d_mulSynSlow[connId];
-										setGABABDSynGValue(postNId, wtId, (double) GABAb_sum*-1);
+										#ifdef CSTP_DOUBLES
+											setGABABDSynGValue(postNId, wtId, (double) GABAb_sum*-1);
+										#else
+											setGABABDSynGValue(postNId, wtId, GABAb_sum*-1);
+										#endif
 										runtimeDataGPU.gGABAb[postNId] -= GABAb_sum;
 									}
 								}
@@ -1837,43 +1913,12 @@ __global__ void kernel_STPUpdateAndDecayConductances (int t, int sec, int simTim
 #endif
 
 #ifdef JK_CA3_SNN
-		/*// update the conductane parameter of the current neron
-		auto& configs = groupConfigsGPU[grpId];
-		if ((threadIdx.x < lastId) && (IS_REGULAR_NEURON(nid, networkConfigGPU.numNReg, networkConfigGPU.numNPois))) {
-			runtimeDataGPU.gAMPA[nid] *= 0.8333;//configs.dAMPA;
-			if (isnan(runtimeDataGPU.gAMPA[nid])) {runtimeDataGPU.gAMPA[nid]=0;}
-			if (configs.with_NMDA_rise) {
-				runtimeDataGPU.gNMDA_r[nid] *= configs.rNMDA;
-				runtimeDataGPU.gNMDA_d[nid] *= configs.dNMDA;
-			}
-			else {
-				runtimeDataGPU.gNMDA[nid] *= 0.9933;//configs.dNMDA;
-			}
-			runtimeDataGPU.gGABAa[nid] *= 0.8;//configs.dGABAa;
-			if (configs.with_GABAb_rise) {
-				runtimeDataGPU.gGABAb_r[nid] *= configs.rGABAb;
-				runtimeDataGPU.gGABAb_d[nid] *= configs.dGABAb;
-			}
-			else {
-				runtimeDataGPU.gGABAb[nid] *= 0.9933;//configs.dGABAb;
-			}
-			if (PRINT_STP_VARIABLES == 1 && nid == 99 && runtimeDataGPU.gAMPA[nid] > 0.1) {
-				printf("t:%d post:%d ampa:%f gabaa:%f\n",t,nid,runtimeDataGPU.gAMPA[nid],runtimeDataGPU.gGABAa[nid]);
-			}
-		}
-		if (groupConfigsGPU[grpId].WithSTP && (threadIdx.x < lastId) && (nid < networkConfigGPU.numN)) {
-			int ind_plus  = getSTPBufPos(nid, simTime);
-			int ind_minus = getSTPBufPos(nid, (simTime-1)); // \FIXME sure?
-			auto config = groupConfigsGPU[grpId];
-			float tau_u_inv = config.STP_tau_u_inv;
-			float tau_x_inv = config.STP_tau_x_inv;
-			runtimeDataGPU.stpu[ind_plus] = runtimeDataGPU.stpu[ind_minus] * (1.0f - tau_u_inv);
-			runtimeDataGPU.stpx[ind_plus] = runtimeDataGPU.stpx[ind_minus] + (1.0f - runtimeDataGPU.stpx[ind_minus]) * tau_x_inv;
-		}*/
-		///////////////////////
-		double* ampa_ptr; double* nmdad_ptr; double* gabaa_ptr; double* gababd_ptr; // NS addition
-		double ampa_sum = 0; double nmdad_sum = 0; double gabaa_sum = 0; double gababd_sum = 0;
-		double nmdar_sum = 0; double gababr_sum = 0;
+		#ifdef CSTP_DOUBLES
+			double* ampa_ptr; double* nmdad_ptr; double* gabaa_ptr; double* gababd_ptr; // NS addition
+			double ampa_sum = 0; double nmdad_sum = 0; double gabaa_sum = 0; double gababd_sum = 0; double nmdar_sum = 0; double gababr_sum = 0;
+		#else
+			float* ampa_ptr; float* nmdad_ptr; float* gabaa_ptr; float* gababd_ptr; // NS addition
+		#endif
 		if ((threadIdx.x < lastId) && (nid < networkConfigGPU.numN)) {
 			unsigned int offset = runtimeDataGPU.cumulativePre[nid];
 			// printf("outside decay update loop:: simtime:%d -- postNid:%d -- offset:%d -- npre:%d\n", simTime, nid, offset, runtimeDataGPU.Npre[nid]);
@@ -1892,66 +1937,97 @@ __global__ void kernel_STPUpdateAndDecayConductances (int t, int sec, int simTim
 					*nmdad_ptr *= runtimeDataGPU.stp_dNMDA[lSId];
 					*gabaa_ptr *= runtimeDataGPU.stp_dGABAa[lSId];
 					*gababd_ptr *= runtimeDataGPU.stp_dGABAb[lSId];
-					if (j == 0) { // on first pre index, clear gReceptor values by equaling them to that pre's conductance. gReceptor values will be regenerated through each pre's value in this loop.
-						//runtimeDataGPU.gAMPA[nid] = *ampa_ptr;	
-						ampa_sum = *ampa_ptr;	
-						if (networkConfigGPU.sim_with_NMDA_rise) {
-							double* nmdar_ptr = getNMDARSynGPtr(nid, j);						
-							*nmdar_ptr *= runtimeDataGPU.stp_rNMDA[lSId];
-							//runtimeDataGPU.gNMDA_r[nid] = *nmdar_ptr;
-							//runtimeDataGPU.gNMDA_d[nid] = *nmdad_ptr;
-							nmdar_sum = *nmdar_ptr;
-							nmdad_sum = *nmdad_ptr;
+					#ifdef CSTP_DOUBLES
+						if (j == 0) { // on first pre index, clear gReceptor values by equaling them to that pre's conductance. gReceptor values will be regenerated through each pre's value in this loop.
+							ampa_sum = *ampa_ptr;	
+							if (networkConfigGPU.sim_with_NMDA_rise) {
+								double* nmdar_ptr = getNMDARSynGPtr(nid, j);						
+								*nmdar_ptr *= runtimeDataGPU.stp_rNMDA[lSId];
+								nmdar_sum = *nmdar_ptr;
+								nmdad_sum = *nmdad_ptr;
+							}
+							else {
+								nmdad_sum = *nmdad_ptr;
+							}		
+							gabaa_sum = *gabaa_ptr;
+							if (networkConfigGPU.sim_with_GABAb_rise) {
+								double* gababr_ptr = getGABABRSynGPtr(nid, j);	
+								*gababr_ptr *= runtimeDataGPU.stp_rGABAb[lSId];
+								gababr_sum = *gababr_ptr;
+								gababd_sum = *gababd_ptr;
+							}
+							else {
+								gababd_sum = *gababd_ptr;
+							}	
+						}
+						else {	
+							ampa_sum += *ampa_ptr;
+							if (networkConfigGPU.sim_with_NMDA_rise) {
+								double* nmdar_ptr = getNMDARSynGPtr(nid, j);						
+								*nmdar_ptr *= runtimeDataGPU.stp_rNMDA[lSId];
+								nmdar_sum += *nmdar_ptr;
+								nmdad_sum += *nmdad_ptr;
+							}
+							else {
+								nmdad_sum += *nmdad_ptr;
+							}	
+							gabaa_sum += *gabaa_ptr;
+							if (networkConfigGPU.sim_with_GABAb_rise) {
+								double* gababr_ptr = getGABABRSynGPtr(nid, j);	
+								*gababr_ptr *= runtimeDataGPU.stp_rGABAb[lSId];
+								gababr_sum += *gababr_ptr;
+								gababd_sum += *gababd_ptr;
+							}
+							else {
+								gababd_sum += *gababd_ptr;
+							}
+						}
+					#else
+						if (j == 0) { // on first pre index, clear gReceptor values by equaling them to that pre's conductance. gReceptor values will be regenerated through each pre's value in this loop.
+							runtimeDataGPU.gAMPA[nid] = *ampa_ptr;		
+							if (networkConfigGPU.sim_with_NMDA_rise) {
+								float* nmdar_ptr = getNMDARSynGPtr(nid, j);						
+								*nmdar_ptr *= runtimeDataGPU.stp_rNMDA[lSId];
+								runtimeDataGPU.gNMDA_r[nid] = *nmdar_ptr;
+								runtimeDataGPU.gNMDA_d[nid] = *nmdad_ptr;
+							}
+							else {
+								runtimeDataGPU.gNMDA[nid] = *nmdad_ptr;
+							}	
+							runtimeDataGPU.gGABAa[nid] = *gabaa_ptr;	
+							if (networkConfigGPU.sim_with_GABAb_rise) {
+								float* gababr_ptr = getGABABRSynGPtr(nid, j);	
+								*gababr_ptr *= runtimeDataGPU.stp_rGABAb[lSId];
+								runtimeDataGPU.gGABAb_r[nid] = *gababr_ptr;
+								runtimeDataGPU.gGABAb_d[nid] = *gababd_ptr;
+							}
+							else {
+								runtimeDataGPU.gGABAb[nid] = *gababd_ptr;
+							}	
 						}
 						else {
-							//runtimeDataGPU.gNMDA[nid] = *nmdad_ptr;
-							nmdad_sum = *nmdad_ptr;
-						}	
-						//runtimeDataGPU.gGABAa[nid] = *gabaa_ptr;	
-						gabaa_sum = *gabaa_ptr;
-						if (networkConfigGPU.sim_with_GABAb_rise) {
-							double* gababr_ptr = getGABABRSynGPtr(nid, j);	
-							*gababr_ptr *= runtimeDataGPU.stp_rGABAb[lSId];
-							//runtimeDataGPU.gGABAb_r[nid] = *gababr_ptr;
-							//runtimeDataGPU.gGABAb_d[nid] = *gababd_ptr;
-							gababr_sum = *gababr_ptr;
-							gababd_sum = *gababd_ptr;
-						}
-						else {
-							//runtimeDataGPU.gGABAb[nid] = *gababd_ptr;
-							gababd_sum = *gababd_ptr;
-						}	
-					}
-					else {
-						//runtimeDataGPU.gAMPA[nid] += *ampa_ptr;	
-						ampa_sum += *ampa_ptr;
-						if (networkConfigGPU.sim_with_NMDA_rise) {
-							double* nmdar_ptr = getNMDARSynGPtr(nid, j);						
-							*nmdar_ptr *= runtimeDataGPU.stp_rNMDA[lSId];
-							//runtimeDataGPU.gNMDA_r[nid] += *nmdar_ptr;
-							//runtimeDataGPU.gNMDA_d[nid] += *nmdad_ptr;
-							nmdar_sum += *nmdar_ptr;
-							nmdad_sum += *nmdad_ptr;
-						}
-						else {
-							//runtimeDataGPU.gNMDA[nid] += *nmdad_ptr;
-							nmdad_sum += *nmdad_ptr;
-						}	
-						//runtimeDataGPU.gGABAa[nid] += *gabaa_ptr;	
-						gabaa_sum += *gabaa_ptr;
-						if (networkConfigGPU.sim_with_GABAb_rise) {
-							double* gababr_ptr = getGABABRSynGPtr(nid, j);	
-							*gababr_ptr *= runtimeDataGPU.stp_rGABAb[lSId];
-							//runtimeDataGPU.gGABAb_r[nid] += *gababr_ptr;
-							//runtimeDataGPU.gGABAb_d[nid] += *gababd_ptr;
-							gababr_sum += *gababr_ptr;
-							gababd_sum += *gababd_ptr;
-						}
-						else {
-							//runtimeDataGPU.gGABAb[nid] += *gababd_ptr;
-							gababd_sum += *gababd_ptr;
-						}
-					}
+							runtimeDataGPU.gAMPA[nid] += *ampa_ptr;
+							if (networkConfigGPU.sim_with_NMDA_rise) {
+								float* nmdar_ptr = getNMDARSynGPtr(nid, j);						
+								*nmdar_ptr *= runtimeDataGPU.stp_rNMDA[lSId];
+								runtimeDataGPU.gNMDA_r[nid] += *nmdar_ptr;
+								runtimeDataGPU.gNMDA_d[nid] += *nmdad_ptr;
+							}
+							else {
+								runtimeDataGPU.gNMDA[nid] += *nmdad_ptr;
+							}	
+							runtimeDataGPU.gGABAa[nid] += *gabaa_ptr;
+							if (networkConfigGPU.sim_with_GABAb_rise) {
+								float* gababr_ptr = getGABABRSynGPtr(nid, j);	
+								*gababr_ptr *= runtimeDataGPU.stp_rGABAb[lSId];
+								runtimeDataGPU.gGABAb_r[nid] += *gababr_ptr;
+								runtimeDataGPU.gGABAb_d[nid] += *gababd_ptr;
+							}
+							else {
+								runtimeDataGPU.gGABAb[nid] += *gababd_ptr;
+							}
+						}					
+					#endif
 					if (PRINT_CONDUCTANCE_DECAY == 1 && runtimeDataGPU.gAMPA[nid] > 0.1 && t>=200 && t<=300) {
 						SynInfo synInfo = runtimeDataGPU.preSynapticIds[lSId];
 						uint32_t  preNId = GET_CONN_NEURON_ID(synInfo);
@@ -1972,25 +2048,25 @@ __global__ void kernel_STPUpdateAndDecayConductances (int t, int sec, int simTim
 					}
 				}
 			}
-			// add sums to totals
-			runtimeDataGPU.gAMPA[nid] = (float) ampa_sum;
-			if (networkConfigGPU.sim_with_NMDA_rise) {
-				runtimeDataGPU.gNMDA_r[nid] = (float) nmdar_sum;
-				runtimeDataGPU.gNMDA_d[nid] = (float) nmdad_sum;
-			}
-			else {
-				runtimeDataGPU.gNMDA[nid] = (float) nmdad_sum;
-				//if (t>200&&t<300&&nid==50) {printf("NMDA_sum2:%f\n",runtimeDataGPU.gNMDA_d[nid]);}
-
-			}
-			runtimeDataGPU.gGABAa[nid] = (float) gabaa_sum;
-			if (networkConfigGPU.sim_with_GABAb_rise) {
-				runtimeDataGPU.gGABAb_r[nid] = (float) gababr_sum;
-				runtimeDataGPU.gGABAb_d[nid] = (float) gababd_sum;
-			}
-			else {
-				runtimeDataGPU.gGABAb[nid] = (float) gababd_sum;
-			}
+			#ifdef CSTP_DOUBLES
+				// add sums to totals
+				runtimeDataGPU.gAMPA[nid] = (float) ampa_sum;
+				if (networkConfigGPU.sim_with_NMDA_rise) {
+					runtimeDataGPU.gNMDA_r[nid] = (float) nmdar_sum;
+					runtimeDataGPU.gNMDA_d[nid] = (float) nmdad_sum;
+				}
+				else {
+					runtimeDataGPU.gNMDA[nid] = (float) nmdad_sum;
+				}
+				runtimeDataGPU.gGABAa[nid] = (float) gabaa_sum;
+				if (networkConfigGPU.sim_with_GABAb_rise) {
+					runtimeDataGPU.gGABAb_r[nid] = (float) gababr_sum;
+					runtimeDataGPU.gGABAb_d[nid] = (float) gababd_sum;
+				}
+				else {
+					runtimeDataGPU.gGABAb[nid] = (float) gababd_sum;
+				}
+			#endif
 			//runtimeDataGPU.gAMPA[nid] *= 0.8333333333;
 			/*if (configs.with_NMDA_rise) {
 				runtimeDataGPU.gNMDA_r[nid] *= configs.rNMDA;
@@ -3850,12 +3926,21 @@ void SNN::copyAuxiliaryData(int netId, int lGrpId, RuntimeData* dest, cudaMemcpy
 #if JK_CA3_SNN
 	if(allocateMem) {
 		networkConfigs[netId].syn_gLength = networkConfigs[netId].maxNumPreSynN;
-		CUDA_CHECK_ERRORS(cudaMallocPitch((void**)&dest->AMPA_syn_g, &networkConfigs[netId].syn_gPitch, sizeof(double) * networkConfigs[netId].syn_gLength, networkConfigs[netId].numNReg));
-		CUDA_CHECK_ERRORS(cudaMallocPitch((void**)&dest->NMDA_d_syn_g, &networkConfigs[netId].syn_gPitch, sizeof(double) * networkConfigs[netId].syn_gLength, networkConfigs[netId].numNReg));
-		CUDA_CHECK_ERRORS(cudaMallocPitch((void**)&dest->NMDA_r_syn_g, &networkConfigs[netId].syn_gPitch, sizeof(double) * networkConfigs[netId].syn_gLength, networkConfigs[netId].numNReg));
-		CUDA_CHECK_ERRORS(cudaMallocPitch((void**)&dest->GABAa_syn_g, &networkConfigs[netId].syn_gPitch, sizeof(double) * networkConfigs[netId].syn_gLength, networkConfigs[netId].numNReg));
-		CUDA_CHECK_ERRORS(cudaMallocPitch((void**)&dest->GABAb_d_syn_g, &networkConfigs[netId].syn_gPitch, sizeof(double) * networkConfigs[netId].syn_gLength, networkConfigs[netId].numNReg));
-		CUDA_CHECK_ERRORS(cudaMallocPitch((void**)&dest->GABAb_r_syn_g, &networkConfigs[netId].syn_gPitch, sizeof(double) * networkConfigs[netId].syn_gLength, networkConfigs[netId].numNReg));
+		#ifdef CSTP_DOUBLES
+			CUDA_CHECK_ERRORS(cudaMallocPitch((void**)&dest->AMPA_syn_g, &networkConfigs[netId].syn_gPitch, sizeof(double) * networkConfigs[netId].syn_gLength, networkConfigs[netId].numNReg));
+			CUDA_CHECK_ERRORS(cudaMallocPitch((void**)&dest->NMDA_d_syn_g, &networkConfigs[netId].syn_gPitch, sizeof(double) * networkConfigs[netId].syn_gLength, networkConfigs[netId].numNReg));
+			CUDA_CHECK_ERRORS(cudaMallocPitch((void**)&dest->NMDA_r_syn_g, &networkConfigs[netId].syn_gPitch, sizeof(double) * networkConfigs[netId].syn_gLength, networkConfigs[netId].numNReg));
+			CUDA_CHECK_ERRORS(cudaMallocPitch((void**)&dest->GABAa_syn_g, &networkConfigs[netId].syn_gPitch, sizeof(double) * networkConfigs[netId].syn_gLength, networkConfigs[netId].numNReg));
+			CUDA_CHECK_ERRORS(cudaMallocPitch((void**)&dest->GABAb_d_syn_g, &networkConfigs[netId].syn_gPitch, sizeof(double) * networkConfigs[netId].syn_gLength, networkConfigs[netId].numNReg));
+			CUDA_CHECK_ERRORS(cudaMallocPitch((void**)&dest->GABAb_r_syn_g, &networkConfigs[netId].syn_gPitch, sizeof(double) * networkConfigs[netId].syn_gLength, networkConfigs[netId].numNReg));
+		#else
+			CUDA_CHECK_ERRORS(cudaMallocPitch((void**)&dest->AMPA_syn_g, &networkConfigs[netId].syn_gPitch, sizeof(float) * networkConfigs[netId].syn_gLength, networkConfigs[netId].numNReg));
+			CUDA_CHECK_ERRORS(cudaMallocPitch((void**)&dest->NMDA_d_syn_g, &networkConfigs[netId].syn_gPitch, sizeof(float) * networkConfigs[netId].syn_gLength, networkConfigs[netId].numNReg));
+			CUDA_CHECK_ERRORS(cudaMallocPitch((void**)&dest->NMDA_r_syn_g, &networkConfigs[netId].syn_gPitch, sizeof(float) * networkConfigs[netId].syn_gLength, networkConfigs[netId].numNReg));
+			CUDA_CHECK_ERRORS(cudaMallocPitch((void**)&dest->GABAa_syn_g, &networkConfigs[netId].syn_gPitch, sizeof(float) * networkConfigs[netId].syn_gLength, networkConfigs[netId].numNReg));
+			CUDA_CHECK_ERRORS(cudaMallocPitch((void**)&dest->GABAb_d_syn_g, &networkConfigs[netId].syn_gPitch, sizeof(float) * networkConfigs[netId].syn_gLength, networkConfigs[netId].numNReg));
+			CUDA_CHECK_ERRORS(cudaMallocPitch((void**)&dest->GABAb_r_syn_g, &networkConfigs[netId].syn_gPitch, sizeof(float) * networkConfigs[netId].syn_gLength, networkConfigs[netId].numNReg));
+		#endif
 	}
 	assert(networkConfigs[netId].syn_gPitch > 0 || networkConfigs[netId].maxNumPreSynN == 0);
 	CUDA_CHECK_ERRORS(cudaMemset(dest->AMPA_syn_g, 0, networkConfigs[netId].syn_gPitch * networkConfigs[netId].syn_gLength));
