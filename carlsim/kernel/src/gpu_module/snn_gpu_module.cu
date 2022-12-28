@@ -794,7 +794,7 @@ __global__ 	void kernel_findFiring (int simTimeMs, int simTime) {
 				if (needToWrite)
 					runtimeDataGPU.lastSpikeTime[lNId] = simTime;
 			} else { // Regular neuron
-/*#ifdef JK_CA3_SNN
+#ifdef JK_CA3_SNN
 				if (runtimeDataGPU.curSpike[lNId]) {
 					if (runtimeDataGPU.lastSpikeTime[lNId] > 20000000) {
 						runtimeDataGPU.curSpike[lNId] = false;
@@ -815,12 +815,12 @@ __global__ 	void kernel_findFiring (int simTimeMs, int simTime) {
 					}
 					//                     printf("Current Spike Flag %d at %d and %d \n",runtimeDataGPU.curSpike[lNId],simTimeMs,simTime);
 				}
-#else*/
+#else
 				if (runtimeDataGPU.curSpike[lNId]) {
 					runtimeDataGPU.curSpike[lNId] = false;
 					needToWrite = true;
 				}
-//#endif
+#endif
 
 				// log v, u value if any active neuron monitor is presented
 				if (networkConfigGPU.sim_with_nm && lNId - groupConfigsGPU[lGrpId].lStartN < MAX_NEURON_MON_GRP_SZIE) {
