@@ -847,7 +847,9 @@ __global__ 	void kernel_findFiring (int simTimeMs, int simTime) {
 #ifdef JK_CA3_SNN
 				if (runtimeDataGPU.curSpike[lNId]) {
 					if (runtimeDataGPU.Izh_ref[lNId] > 0) {
-						if (runtimeDataGPU.lastSpikeTime[lNId] > RP_MAX_LST) {
+						// INT_MAX is used below to detect the initial value of lastSpikeTime that
+						// exists before any spike. This condition is needed before spk_tDiff can be computed.
+						if (runtimeDataGPU.lastSpikeTime[lNId] == INT_MAX) {
 							runtimeDataGPU.curSpike[lNId] = false;
 							needToWrite = true;
 							runtimeDataGPU.lastSpikeTime[lNId] = simTime;
