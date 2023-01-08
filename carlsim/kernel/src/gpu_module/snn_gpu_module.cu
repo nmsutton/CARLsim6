@@ -1001,10 +1001,11 @@ __global__ void kernel_conductanceUpdate (int simTimeMs, int simTimeSec, int sim
 
 							if (networkConfigGPU.sim_with_conductances) {
 								short int connId = runtimeDataGPU.connIdsPreIdx[cum_pos + wtId];
-								if (type & TARGET_AMPA)
+								if (type & TARGET_AMPA) {
 									AMPA_sum = change * d_mulSynFast[connId];
 									setAMPASynGValue(postNId, wtId, AMPA_sum); // NS addition
 									runtimeDataGPU.gAMPA[postNId] += AMPA_sum;
+								}
 								if (type & TARGET_NMDA) {
 									if (networkConfigGPU.sim_with_NMDA_rise) {
 										NMDA_r_sum = change * d_mulSynSlow[connId] * runtimeDataGPU.stp_sNMDA[pos];
@@ -1020,10 +1021,11 @@ __global__ void kernel_conductanceUpdate (int simTimeMs, int simTimeSec, int sim
 										runtimeDataGPU.gNMDA[postNId] += NMDA_sum;
 									}
 								}
-								if (type & TARGET_GABAa)
+								if (type & TARGET_GABAa) {
 									GABAa_sum = change * d_mulSynFast[connId];
 									setGABAASynGValue(postNId, wtId, GABAa_sum*-1); 
 									runtimeDataGPU.gGABAa[postNId] -= GABAa_sum; // wt should be negative for GABAa and GABAb
+								}
 								if (type & TARGET_GABAb) {
 									if (networkConfigGPU.sim_with_GABAb_rise) {
 										GABAb_r_sum = change * d_mulSynSlow[connId] * runtimeDataGPU.stp_sGABAb[pos];
