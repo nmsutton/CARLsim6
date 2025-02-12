@@ -511,6 +511,7 @@ void SNN::copyExtFiringTable(int netId) {
 				//KERNEL_DEBUG("grp[%d] tau_u = %f  tau_x = %f\n", lGrpId, 1.0f/tau_u_inv, 1.0f/tau_x_inv);
 				runtimeData[netId].stpu[ind_plus] = runtimeData[netId].stpu[ind_minus] * (1.0f - tau_u_inv);
 				runtimeData[netId].stpx[ind_plus] = runtimeData[netId].stpx[ind_minus] + (1.0f - runtimeData[netId].stpx[ind_minus]) * tau_x_inv;
+				//printf("grp[%d] (u-, u+) = (%.2f, %.2f)  (x-, x+) = (%.2f, %.2f)\n", lGrpId, runtimeData[netId].stpu[ind_minus], runtimeData[netId].stpu[ind_plus], runtimeData[netId].stpx[ind_minus], runtimeData[netId].stpx[ind_plus]);
 #else
 				runtimeData[netId].stpu[ind_plus] = runtimeData[netId].stpu[ind_minus] * (1.0f - groupConfigs[netId][lGrpId].STP_tau_u_inv);
 				runtimeData[netId].stpx[ind_plus] = runtimeData[netId].stpx[ind_minus] + (1.0f - runtimeData[netId].stpx[ind_minus]) * groupConfigs[netId][lGrpId].STP_tau_x_inv;
@@ -1196,7 +1197,7 @@ bool SNN::updateDelays_CPU(int netId, int gGrpIdPre, int gGrpIdPost, std::vector
 			connInfo.nDest = std::get<1>(*iter);
 			connInfo.delay = std::get<2>(*iter);
 #ifdef DEBUG_updateDelays_CPU
-			printEntrails(buffer, buff_len, 8, gGrpIdPre, gGrpIdPost);
+			printEntrails(buffer, buff_len, gGrpIdPre, gGrpIdPost);
 			printf("before pre=%d, post=%d delay=%d\n%s\n", connInfo.nSrc, connInfo.nDest, connInfo.delay, buffer);
 #endif
 
@@ -1354,7 +1355,7 @@ bool SNN::updateDelays_CPU(int netId, int gGrpIdPre, int gGrpIdPost, std::vector
 				}
 			}
 #ifdef DEBUG_updateDelays_CPU
-			printEntrails(buffer, buff_len, 8, gGrpIdPre, gGrpIdPost);
+			printEntrails(buffer, buff_len, gGrpIdPre, gGrpIdPost);
 			printf("after pre=%d, post=%d delay=%d\n%s\n", connInfo.nSrc, connInfo.nDest, connInfo.delay, buffer);
 #endif
 			
@@ -1791,6 +1792,7 @@ void SNN::generatePostSynapticSpike(int preNId, int postNId, int synId, int tD, 
 			break;
 		case CUBA:
 			runtimeData[netId].current[postNId] += change;
+			//printf("runtimeData[netId].current[%d] += %f\n", postNId, change);
 			break;
 		case NM4W_LN21:
 			runtimeData[netId].current[postNId] += change;		// LN2021 \todo refact see above COBA
