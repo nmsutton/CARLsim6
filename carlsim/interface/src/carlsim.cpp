@@ -2557,7 +2557,7 @@ void CARLsim::scaleWeights(short int connId, float scale, bool updateWeightRange
 
 void CARLsim::updateNM4Levels(int netID, int groupID, bool updateDA, bool update5HT, bool updateACh, bool updateNE, 
 float levelDA, float level5HT, float levelACh, float levelNE) {
-	_impl->updateNMLevels(netID, groupID, updateDA, update5HT, updateACh, updateNE, 
+	_impl->updateNM4Levels(netID, groupID, updateDA, update5HT, updateACh, updateNE, 
 						 levelDA, level5HT, levelACh, levelNE);
 }
 
