@@ -1274,7 +1274,7 @@ snn_->setSTP(preGrpId, postGrpId, isSet, def_STP_U_inh_mean, def_STP_U_inh_std, 
 
 	void updateNM4Levels(int netID, int groupID, bool updateDP, bool update5HT, bool updateACh, bool updateNE, 
 	float levelDP, float level5HT, float levelACh, float levelNE) {
-		snn_->updateNMLevels(netID, groupID, updateDP, update5HT, updateACh, updateNE, 
+		snn_->updateNM4Levels(netID, groupID, updateDP, update5HT, updateACh, updateNE, 
 							 levelDP, level5HT, levelACh, levelNE);
 	}
 
