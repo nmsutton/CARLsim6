@@ -1247,6 +1247,9 @@ public:
 	 */
 	void scaleWeights(short int connId, float scale, bool updateWeightRange=false);
 
+	void updateNM4Levels(int netID, int groupID, bool updateDA, bool update5HT, bool updateACh, bool updateNE, 
+	float levelDA, float level5HT, float levelACh, float levelNE);
+
 	/*!
 	 * \brief Sets a connection monitor for a group, custom ConnectionMonitor class
 	 *

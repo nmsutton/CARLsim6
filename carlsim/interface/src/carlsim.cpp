@@ -1272,6 +1272,12 @@ snn_->setSTP(preGrpId, postGrpId, isSet, def_STP_U_inh_mean, def_STP_U_inh_std, 
 		snn_->scaleWeights(connId, scale, updateWeightRange);
 	}
 
+	void updateNM4Levels(int netID, int groupID, bool updateDP, bool update5HT, bool updateACh, bool updateNE, 
+	float levelDP, float level5HT, float levelACh, float levelNE) {
+		snn_->updateNMLevels(netID, groupID, updateDP, update5HT, updateACh, updateNE, 
+							 levelDP, level5HT, levelACh, levelNE);
+	}
+
 	// set spike monitor for group and write spikes to file
 	ConnectionMonitor* setConnectionMonitor(int grpIdPre, int grpIdPost, const std::string& fname) {
 		std::string funcName = "setConnectionMonitor(\"" + getGroupName(grpIdPre) + "\",\"" + getGroupName(grpIdPost)

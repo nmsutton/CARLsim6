@@ -514,6 +514,9 @@ public:
 	// multiplies every weight with a scaling factor
 	void scaleWeights(short int connId, float scale, bool updateWeightRange = false);
 
+	void updateNM4Levels(int netID, int groupID, bool updateDA, bool update5HT, bool updateACh, bool updateNE, 
+	float levelDA, float level5HT, float levelACh, float levelNE);
+
 	//! sets up a group monitor registered with a callback to process the spikes.
 	/*!
 	 * \param[in] grpId ID of the neuron group
