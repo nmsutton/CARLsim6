@@ -2555,6 +2555,12 @@ void CARLsim::scaleWeights(short int connId, float scale, bool updateWeightRange
 	_impl->scaleWeights(connId, scale, updateWeightRange);
 }
 
+void CARLsim::updateNM4Levels(int netID, int groupID, bool updateDA, bool update5HT, bool updateACh, bool updateNE, 
+float levelDA, float level5HT, float levelACh, float levelNE) {
+	_impl->updateNMLevels(netID, groupID, updateDA, update5HT, updateACh, updateNE, 
+						 levelDA, level5HT, levelACh, levelNE);
+}
+
 // Sets a connection monitor for a group, custom ConnectionMonitor class
 ConnectionMonitor* CARLsim::setConnectionMonitor(int grpIdPre, int grpIdPost, const std::string& fname) {
 	return _impl->setConnectionMonitor(grpIdPre, grpIdPost, fname);
