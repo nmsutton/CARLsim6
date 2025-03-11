@@ -1272,6 +1272,16 @@ snn_->setSTP(preGrpId, postGrpId, isSet, def_STP_U_inh_mean, def_STP_U_inh_std, 
 		snn_->scaleWeights(connId, scale, updateWeightRange);
 	}
 
+	// NS addition 02/21/25
+	void testPrint() {
+		snn_->testPrint();
+	}
+
+	// NS addition 02/21/25
+	void testPrint2() {
+		snn_->testPrint2();
+	}
+
 	void updateNM4Levels(int netID, int groupID, bool updateDP, bool update5HT, bool updateACh, bool updateNE, 
 	float levelDP, float level5HT, float levelACh, float levelNE) {
 		snn_->updateNM4Levels(netID, groupID, updateDP, update5HT, updateACh, updateNE, 
@@ -2553,6 +2563,16 @@ void CARLsim::loadSimulation(FILE* fid) { _impl->loadSimulation(fid); }
 // Multiplies the weight of every synapse in the connection with a scaling factor
 void CARLsim::scaleWeights(short int connId, float scale, bool updateWeightRange) {
 	_impl->scaleWeights(connId, scale, updateWeightRange);
+}
+
+// NS addition 02/21/25
+void CARLsim::testPrint() {
+	_impl->testPrint();
+}
+
+// NS addition 02/21/25
+void CARLsim::testPrint2() {
+	_impl->testPrint2();
 }
 
 void CARLsim::updateNM4Levels(int netID, int groupID, bool updateDA, bool update5HT, bool updateACh, bool updateNE, 

@@ -514,6 +514,9 @@ public:
 	// multiplies every weight with a scaling factor
 	void scaleWeights(short int connId, float scale, bool updateWeightRange = false);
 
+	// NS added 02/21/25
+	void testPrint();
+	void testPrint2();
 	void updateNM4Levels(int netID, int groupID, bool updateDA, bool update5HT, bool updateACh, bool updateNE, 
 	float levelDA, float level5HT, float levelACh, float levelNE);
 

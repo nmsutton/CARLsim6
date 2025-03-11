@@ -1539,6 +1539,52 @@ void SNN::scaleWeights(short int connId, float scale, bool updateWeightRange) {
 	}
 }
 
+// NS addition 02/21/25
+void SNN::testPrint() {
+	float test=2;//1;
+	float * testPtr = &test;
+	//memcpy(&runtimeData[0].grpACh[0], &testPtr, sizeof(float));
+	//CUDA_CHECK_ERRORS(cudaMemcpy(&runtimeData[0].grpACh[0], &testPtr, sizeof(float), cudaMemcpyHostToDevice));
+	//CUDA_CHECK_ERRORS(cudaMemcpy(&runtimeData[0].grpACh[0], &testPtr, sizeof(float), cudaMemcpyHostToDevice));
+	//memcpy(&runtimeData[0].grpACh[0], &test, sizeof(float));
+	//float test2 = runtimeData[0].grpACh[0];
+	//std::cout << "\nruntimeData[0].grpACh[0] " << runtimeData[0];//[0].grpACh;
+	int index = 1;
+	managerRuntimeData.grpACh[index] = 0.6f;//2.0f;
+	std::cout << "\nmanagerRuntimeData.grpACh[0] " << managerRuntimeData.grpACh[index];
+	CUDA_CHECK_ERRORS(cudaMemcpy(&runtimeData[0].grpACh[index], &managerRuntimeData.grpACh[index], sizeof(float), cudaMemcpyHostToDevice));
+	//CUDA_CHECK_ERRORS(cudaMemcpy(&runtimeData[0].grpACh[0], &testPtr, sizeof(float), cudaMemcpyHostToDevice));
+	//CUDA_CHECK_ERRORS(cudaMemcpy(&runtimeData[0].grpACh[0], &managerRuntimeData.grpACh[0], sizeof(float), cudaMemcpyHostToDevice));
+	//CUDA_CHECK_ERRORS(cudaMemcpy(&runtimeData[netId].maxSynWt[pos_ij], &managerRuntimeData.maxSynWt[pos_ij], sizeof(float), cudaMemcpyHostToDevice));
+	//int netId = groupConfigMDMap[connectConfigMap[connId].grpDest].netId;
+	//int netId = groupConfigMDMap[connectConfigMap[0].grpDest].netId;
+	// int netId = 0;
+	// int postlGrpId = 0;
+	// int neurIdPost = 0;
+	// int neurIdPostReal = groupConfigs[netId][postlGrpId].lStartN + neurIdPost;
+	//int pos_ij = managerRuntimeData.cumulativePre[neurIdPostReal];
+	//int pos_ij = managerRuntimeData.cumulativePre[0];
+	//CUDA_CHECK_ERRORS(cudaMemcpy(&runtimeData[netId].maxSynWt[0], &managerRuntimeData.maxSynWt[0], sizeof(float), cudaMemcpyHostToDevice));
+	//CUDA_CHECK_ERRORS(cudaMemcpy(&runtimeData[0].wt[0], &managerRuntimeData.wt[0], sizeof(float), cudaMemcpyHostToDevice));
+	//runtimeDataGPU.grpACh[0];
+	//printf("\ntest:%f %f\n",&runtimeData[0].grpACh[0], *testPtr);
+	//*runtimeData[0].grpACh[0] = 1.0f;
+	//memcpy(&runtimeData[0].grpACh[0], &test, sizeof(float));
+	//printf("\ntest2:%f\n",&runtimeData[0].grpACh[0]);
+	//printf("\ntest2:%f\n",&managerRuntimeData.grpACh[0]);
+	//std::cout << testPtr;
+	//std::cout << &runtimeData[0].grpACh[0];
+	//std::cout << "\n" << "netId " << netId << " neurIdPostReal " << neurIdPostReal << "\n";
+	//setWeight(0,0,0,0.0f,false);
+	printf("\ntesting print statement\n");
+}
+
+// NS addition 02/22/25
+void SNN::testPrint2() {
+	std::cout << "\nmanagerRuntimeData.grpACh[1] " << managerRuntimeData.grpACh[1] << "\n";
+}
+
+// NS addition 02/22/25
 void SNN::updateNM4Levels(int netID, int groupID, bool updateDA, bool update5HT, bool updateACh, bool updateNE, 
 	float levelDA, float level5HT, float levelACh, float levelNE) {
 	if (updateDA == true) {
@@ -1808,6 +1854,8 @@ void SNN::setWeight(short int connId, int neurIdPre, int neurIdPost, float weigh
 	// iterate over all presynaptic synapses until right one is found
 	bool synapseFound = false;
 	int pos_ij = managerRuntimeData.cumulativePre[neurIdPostReal];
+	//CUDA_CHECK_ERRORS(cudaMemcpy(&runtimeData[0].wt[0], &managerRuntimeData.wt[0], sizeof(float), cudaMemcpyHostToDevice));
+	//std::cout << "\npos_ij " << pos_ij << " netId " << netId;
 	for (int j = 0; j < managerRuntimeData.Npre[neurIdPostReal]; pos_ij++, j++) {
 		SynInfo* preId = &(managerRuntimeData.preSynapticIds[pos_ij]);
 		int pre_nid = GET_CONN_NEURON_ID((*preId));

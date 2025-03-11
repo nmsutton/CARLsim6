@@ -788,6 +788,10 @@ typedef struct RuntimeData_s {
 		float* GABAb_d_syn_g;
 		float* GABAb_r_syn_g;		
 	#endif
+	#ifdef CARLSIM_ALLTOALL_STDP
+		int* pre_spikes;
+		int* post_spikes;
+	#endif
 #endif	
 
 	int* I_set; //!< an array of bits indicating which synapse got a spike
@@ -952,6 +956,12 @@ typedef struct NetworkConfigRT_s  {
 #if JK_CA3_SNN
 	unsigned int syn_gLength; //!< used for GPU only
 	size_t       syn_gPitch;  //!< used for GPU only	
+	#if CARLSIM_ALLTOALL_STDP
+		unsigned int stdp_gLength; //!< used for GPU only
+		size_t       stdp_gPitch;  //!< used for GPU only	
+		unsigned int stdp_gLength2; //!< used for GPU only
+		size_t       stdp_gPitch2;  //!< used for GPU only
+	#endif
 #endif
 	size_t       STP_Pitch;   //!< numN rounded upwards to the nearest 256 boundary, used for GPU only
 	int numPostSynNet;        //!< the total number of post-connections in a network
