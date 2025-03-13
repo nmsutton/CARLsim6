@@ -722,40 +722,8 @@ __device__ void updateLTP(int* fireTablePtr, short int* fireGrpId, volatile unsi
 					p < end_p;
 					p+=LTP_GROUPING_SZ) {
 				short connId = runtimeDataGPU.connIdsPreIdx[p];
-#if CARLSIM_ALLTOALL_STDP
-				// for (int i = 0; i < 20; i++) {
-				//int* pre_spikes_ptr = getPreSpikesPtr(p, i);
-				// int stdp_tDiff = (simTime - *pre_spikes_ptr);
-				// if (true) {
-				//int stdp_tDiff = (simTime - runtimeDataGPU.synSpikeTime[p]);
-				//printf("stdp_tDiff: %d\n",stdp_tDiff);
-#else
+#if CARLSIM_PRESYN_CENT_STDP == 0
 				int stdp_tDiff = (simTime - runtimeDataGPU.synSpikeTime[p]);
-#endif
-#if CARLSIM_PRESYN_CENT_STDP
-				// if (simTime == 1) {
-				// 	// initialize
-				// 	for (int i = 0; i < 50; i++) {
-				// 		//printf("simTime: %d\n",simTime);
-				// 		setPreSpikesValue(p, i, 0);
-				// 	}
-				// }
-				//printf("p %d\n",p);
-				//setPreSpikesValue(p, i, runtimeDataGPU.synSpikeTime[p]);
-				if (p == 68400) {printf("simTime: %d\n",simTime);}
-				// for (int i = 0; i < 2; i++) {
-				// int* pre_spikes_ptr = getPreSpikesPtr(p, i);
-				// int stdp_tDiff2 = (simTime - *pre_spikes_ptr);
-				int* pre_spikes_ptr = getPreSpikesPtr(p, 0);
-				int stdp_tDiff = (simTime - *pre_spikes_ptr);
-				int* pre_spikes_ptr2 = getPreSpikesPtr(p, 1);
-				int stdp_tDiff2 = (simTime - *pre_spikes_ptr2);
-				if (stdp_tDiff != 0 && stdp_tDiff2 != 0) {
-					printf("simTime: %d; p: %d; stdp_tDiff: %d; stdp_tDiff2: %d\n",simTime,p,stdp_tDiff,stdp_tDiff2);
-				}
-				//printf("stdp_tDiff: %d\n",stdp_tDiff);
-				// i = 1 may be < 0
-#endif
 				if (stdp_tDiff > 0) {
 					if (connectConfigsGPU[connId].WithESTDP) {
 						// Handle E-STDP curves
@@ -841,87 +809,104 @@ __device__ void updateLTP(int* fireTablePtr, short int* fireGrpId, volatile unsi
 						}
 					}
 				}
-#if CARLSIM_PRESYN_CENT_STDP
-// 				// post before pre spike processing
-// 				stdp_tDiff = abs(stdp_tDiff);
-// 				if (stdp_tDiff < 0) {
-// 					if (connectConfigsGPU[connId].WithESTDP) {
-// 						// Handle E-STDP curves
-// 						switch (connectConfigsGPU[connId].WithESTDPcurve) {
-// #ifdef LN_I_CALC_TYPES
-// 						case EXP_CURVE: // exponential curve
-// 							if (stdp_tDiff * connectConfigsGPU[connId].TAU_MINUS_INV_EXC < 25.0f) 
-// 								if(connectConfigsGPU[connId].WithESTDPtype == PKA_PLC_MOD) {
-
-// 									auto weight_nm = [&](float& nm, int i_nm) {
-// 										switch (i_nm) {			// index
-// 										case NM_DA:	 nm *= runtimeDataGPU.grpDA[postGrpId];
-// 											break;
-// 										case NM_5HT: nm *= runtimeDataGPU.grp5HT[postGrpId];
-// 											break;
-// 										case NM_ACh: nm *= runtimeDataGPU.grpACh[postGrpId];
-// 											break;
-// 										case NM_NE:  nm *= runtimeDataGPU.grpNE[postGrpId];
-// 											break;
-// 										};
-// 									};
-
-// 									float nm_pka = connectConfigsGPU[connId].W_PKA;
-// 									weight_nm(nm_pka, connectConfigsGPU[connId].NM_PKA);
-
-// 									float nm_plc = connectConfigsGPU[connId].W_PLC;
-// 									weight_nm(nm_plc, connectConfigsGPU[connId].NM_PLC);
-
-// 									float a_m = connectConfigsGPU[connId].ALPHA_MINUS_EXC;
-// 									float tau_m_inv = connectConfigsGPU[connId].TAU_MINUS_INV_EXC;
-
-// 									// f_pka_m = ne * (-a_m * exp(t_m * tau_p_inv))
-// 									float pka_m = nm_pka * STDPf(stdp_tDiff, -a_m, tau_m_inv);  // no sign switch, see below: -= instead of += 
-
-// 									//f_plc_m = ach * 2 * (a_m * exp(t_m * tau_p_inv))
-// 									float plc_m = nm_plc * 2 * STDPf(stdp_tDiff, a_m, tau_m_inv);  // no sign spwtich, see below: -= instead of +=
-										
-// 									runtimeDataGPU.wtChange[pos] += pka_m + plc_m;
-// 								} 
-// 								else {
-// 									runtimeDataGPU.wtChange[pos] += STDPf(stdp_tDiff, connectConfigsGPU[connId].ALPHA_MINUS_EXC, connectConfigsGPU[connId].TAU_MINUS_INV_EXC); // uncoalesced access
-// 								}
-// 							break;
-// #else
-// 						case EXP_CURVE: // exponential curve
-// #endif
-// 						case TIMING_BASED_CURVE: // sc curve
-// 							if (stdp_tDiff * connectConfigsGPU[connId].TAU_MINUS_INV_EXC < 25.0f)
-// 								runtimeDataGPU.wtChange[pos] += STDPf(stdp_tDiff, connectConfigsGPU[connId].ALPHA_MINUS_EXC, connectConfigsGPU[connId].TAU_MINUS_INV_EXC); // uncoalesced access
-// 							break;
-// 						default:
-// 							break;
-// 						}
-// 					}
-// 					if (connectConfigsGPU[connId].WithISTDP) {
-// 						// Handle I-STDP curves
-// 						switch (connectConfigsGPU[connId].WithISTDPcurve) {
-// 						case EXP_CURVE: // exponential curve
-// 							if ((stdp_tDiff * connectConfigsGPU[connId].TAU_MINUS_INV_INB) < 25.0f) { // LTD of inhibitory syanpse, which increase synapse weight
-// 								runtimeDataGPU.wtChange[pos] -= STDPf(stdp_tDiff, connectConfigsGPU[connId].ALPHA_MINUS_INB, connectConfigsGPU[connId].TAU_MINUS_INV_INB);
-// 							}
-// 							break;
-// 						case PULSE_CURVE: // pulse curve
-// 							if (stdp_tDiff <= connectConfigsGPU[connId].LAMBDA) { // LTP of inhibitory synapse, which decreases synapse weight
-// 								runtimeDataGPU.wtChange[pos] -= connectConfigsGPU[connId].BETA_LTP;
-// 							} else if (stdp_tDiff <= connectConfigsGPU[connId].DELTA) { // LTD of inhibitory syanpse, which increase synapse weight
-// 								runtimeDataGPU.wtChange[pos] -= connectConfigsGPU[connId].BETA_LTD;
-// 							}
-// 							break;
-// 						default:
-// 							break;
-// 						}
-// 					}
-// 				}
-// 				}
 #endif
-#if CARLSIM_ALLTOALL_STDP
-				//}				
+#if CARLSIM_PRESYN_CENT_STDP
+				// store spike times
+
+				// pre spike times
+				int* pre_spikes_ptr;
+				for (int i = 0; i < 20; i++) {
+					// shift back old times
+					pre_spikes_ptr = getPreSpikesPtr(p, i);				
+					setPreSpikesValue(p, i+1, *pre_spikes_ptr);
+				}
+				// set new time
+				setPreSpikesValue(p, 0, runtimeDataGPU.synSpikeTime[p]);
+
+				// post spikes times
+				int* post_spikes_ptr;
+				for (int i = 0; i < 20; i++) {
+					// shift back old times
+					post_spikes_ptr = getPostSpikesPtr(nid, i);	
+					setPostSpikesValue(nid, i+1, *post_spikes_ptr);
+				}
+				// set new time
+				setPostSpikesValue(nid, 0, simTime);
+
+				int stdp_tDiff_nextpost = (simTime - runtimeDataGPU.synSpikeTime[p]);
+				post_spikes_ptr = getPostSpikesPtr(nid, 1);
+				int stdp_tDiff_lastpost = (runtimeDataGPU.synSpikeTime[p] - *post_spikes_ptr);
+				if (stdp_tDiff_lastpost > 0 && stdp_tDiff_nextpost > 0) {
+					if (connectConfigsGPU[connId].WithESTDP) {
+						// process pre before post
+						if (stdp_tDiff_nextpost * connectConfigsGPU[connId].TAU_PLUS_INV_EXC < 25) {
+							if (connectConfigsGPU[connId].WithESTDPtype == PKA_PLC_MOD) {
+								auto weight_nm = [&](float& nm, int i_nm) {
+									switch (i_nm) {			// index
+									case NM_DA:	 nm *= runtimeDataGPU.grpDA[grpId];
+										break;
+									case NM_5HT: nm *= runtimeDataGPU.grp5HT[grpId];
+										break;
+									case NM_ACh: nm *= runtimeDataGPU.grpACh[grpId];
+										break;
+									case NM_NE:  nm *= runtimeDataGPU.grpNE[grpId];
+										break;
+									};
+								};
+								float nm_pka = connectConfigsGPU[connId].W_PKA;
+								weight_nm(nm_pka, connectConfigsGPU[connId].NM_PKA);
+								float nm_plc = connectConfigsGPU[connId].W_PLC;
+								weight_nm(nm_plc, connectConfigsGPU[connId].NM_PLC);
+								float a_p = connectConfigsGPU[connId].ALPHA_PLUS_EXC;
+								float tau_p_inv = connectConfigsGPU[connId].TAU_PLUS_INV_EXC;
+								float pka = nm_pka * 2 * STDPf(stdp_tDiff_nextpost, a_p, tau_p_inv);
+								float plc = nm_plc * STDPf(stdp_tDiff_nextpost, -a_p, tau_p_inv);
+								runtimeDataGPU.wtChange[p] += pka + plc;
+							}
+							else {
+								runtimeDataGPU.wtChange[p] += STDPf(stdp_tDiff_nextpost, connectConfigsGPU[connId].ALPHA_PLUS_EXC, connectConfigsGPU[connId].TAU_PLUS_INV_EXC);
+							}					
+						}
+						// process post before pre
+						if (stdp_tDiff_lastpost * connectConfigsGPU[connId].TAU_MINUS_INV_EXC < 25.0f) {
+							if(connectConfigsGPU[connId].WithESTDPtype == PKA_PLC_MOD) {
+								auto weight_nm = [&](float& nm, int i_nm) {
+									switch (i_nm) {			// index
+									//case NM_DA:	 nm *= runtimeDataGPU.grpDA[postGrpId];
+									// TODO: check if swapping postGrpId for grpId is acceptable
+									// In the pyr 2 pyr case it might be acceptable /bc group is pyr
+									case NM_DA:	 nm *= runtimeDataGPU.grpDA[grpId];
+										break;
+									case NM_5HT: nm *= runtimeDataGPU.grp5HT[grpId];
+										break;
+									case NM_ACh: nm *= runtimeDataGPU.grpACh[grpId];
+										break;
+									case NM_NE:  nm *= runtimeDataGPU.grpNE[grpId];
+										break;
+									};
+								};
+								// TODO: connId being different in line below than orig coded is prob fine /bc only pyr neuromod
+								// params are used. See generatePostSynapticSpike() for original usage.
+								float nm_pka = connectConfigsGPU[connId].W_PKA;
+								weight_nm(nm_pka, connectConfigsGPU[connId].NM_PKA);
+								float nm_plc = connectConfigsGPU[connId].W_PLC;
+								weight_nm(nm_plc, connectConfigsGPU[connId].NM_PLC);
+								float a_m = connectConfigsGPU[connId].ALPHA_MINUS_EXC;
+								float tau_m_inv = connectConfigsGPU[connId].TAU_MINUS_INV_EXC;
+								float pka_m = nm_pka * STDPf(stdp_tDiff_lastpost, -a_m, tau_m_inv);  // no sign switch, see below: -= instead of += 
+								float plc_m = nm_plc * 2 * STDPf(stdp_tDiff_lastpost, a_m, tau_m_inv);  // no sign spwtich, see below: -= instead of +=								
+								// TODO: check that p instead of pos in the indices below is fine to use
+								// instead of pos used in original code. See generatePostSynapticSpike() for original usage.
+								// connId being different probably is also probably fine for above stated reason.
+								runtimeDataGPU.wtChange[p] += pka_m + plc_m;
+							} 
+							else {
+								runtimeDataGPU.wtChange[p] += STDPf(stdp_tDiff_lastpost, connectConfigsGPU[connId].ALPHA_MINUS_EXC, connectConfigsGPU[connId].TAU_MINUS_INV_EXC); // uncoalesced access
+							}
+						}
+						//printf("simTime: %d; pre: %d; last post: %d; next post: %d\n",simTime,runtimeDataGPU.synSpikeTime[p],*post_spikes_ptr,simTime);
+					}
+				}
 #endif
 			}
 		}
@@ -1013,14 +998,14 @@ __global__ 	void kernel_findFiring (int simTimeMs, int simTime) {
 							}
 						}
 #if CARLSIM_ALLTOALL_STDP
-		// store spike times
-		for (int i = 0; i < 20; i++) {
-			// shift back old times
-			int* post_spikes_ptr = getPostSpikesPtr(lNId, i);	
-			setPostSpikesValue(lNId, i+1, *post_spikes_ptr);
-		}
-		// set new time
-		setPostSpikesValue(lNId, 0, simTime);
+		// // store spike times
+		// for (int i = 0; i < 20; i++) {
+		// 	// shift back old times
+		// 	int* post_spikes_ptr = getPostSpikesPtr(lNId, i);	
+		// 	setPostSpikesValue(lNId, i+1, *post_spikes_ptr);
+		// }
+		// // set new time
+		// setPostSpikesValue(lNId, 0, simTime);
 #endif
 					}
 					else {
@@ -2652,13 +2637,13 @@ __device__ void generatePostSynapticSpike(int simTime, int preNId, int postNId, 
 	#ifdef CARLSIM_ALLTOALL_STDP
 		// printf("pos: %d\n",pos);
 		// store spike times
-		for (int i = 0; i < 20; i++) {
-			// shift back old times
-			int* pre_spikes_ptr = getPreSpikesPtr(pos, i);				
-			setPreSpikesValue(pos, i+1, *pre_spikes_ptr);
-		}
-		// set new time
-		setPreSpikesValue(pos, 0, simTime);
+		// for (int i = 0; i < 20; i++) {
+		// 	// shift back old times
+		// 	int* pre_spikes_ptr = getPreSpikesPtr(pos, i);				
+		// 	setPreSpikesValue(pos, i+1, *pre_spikes_ptr);
+		// }
+		// // set new time
+		// setPreSpikesValue(pos, 0, simTime);
 		//setPreSpikesValue(120532, 0, simTime);
 		// setPreSpikesValue(pos, 20, simTime);
 		// for (int i = 0; i < 20; i++) {
@@ -2716,6 +2701,7 @@ __device__ void generatePostSynapticSpike(int simTime, int preNId, int postNId, 
 
 
 	// P3
+#if CARLSIM_PRESYN_CENT_STDP == 0
 	// STDP calculation: the post-synaptic neuron fires before the arrival of pre-synaptic neuron's spike
 	if (groupConfigsGPU[postGrpId].WithSTDP && !networkConfigGPU.sim_in_testing) {
 		int stdp_tDiff = simTime - runtimeDataGPU.lastSpikeTime[postNId];
@@ -2794,6 +2780,7 @@ __device__ void generatePostSynapticSpike(int simTime, int preNId, int postNId, 
 			}
 		}
 	}
+#endif
 }
 
 #define READ_CHUNK_SZ 64
