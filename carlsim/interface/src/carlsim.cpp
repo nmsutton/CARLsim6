@@ -1182,6 +1182,12 @@ public:
 		snn_->scaleWeights(connId, scale, updateWeightRange);
 	}
 
+	void updateNM4Levels(int netID, int groupID, bool updateDP, bool update5HT, bool updateACh, bool updateNE, 
+	float levelDP, float level5HT, float levelACh, float levelNE) {
+		snn_->updateNM4Levels(netID, groupID, updateDP, update5HT, updateACh, updateNE, 
+							 levelDP, level5HT, levelACh, levelNE);
+	}
+
 	// set spike monitor for group and write spikes to file
 	ConnectionMonitor* setConnectionMonitor(int grpIdPre, int grpIdPost, const std::string& fname) {
 		std::string funcName = "setConnectionMonitor(\"" + getGroupName(grpIdPre) + "\",\"" + getGroupName(grpIdPost)
@@ -2342,6 +2348,12 @@ void CARLsim::loadSimulation(FILE* fid) { _impl->loadSimulation(fid); }
 // Multiplies the weight of every synapse in the connection with a scaling factor
 void CARLsim::scaleWeights(short int connId, float scale, bool updateWeightRange) {
 	_impl->scaleWeights(connId, scale, updateWeightRange);
+}
+
+void CARLsim::updateNM4Levels(int netID, int groupID, bool updateDA, bool update5HT, bool updateACh, bool updateNE, 
+float levelDA, float level5HT, float levelACh, float levelNE) {
+	_impl->updateNM4Levels(netID, groupID, updateDA, update5HT, updateACh, updateNE, 
+						 levelDA, level5HT, levelACh, levelNE);
 }
 
 // Sets a connection monitor for a group, custom ConnectionMonitor class

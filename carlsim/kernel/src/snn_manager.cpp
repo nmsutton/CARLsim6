@@ -1435,6 +1435,26 @@ void SNN::scaleWeights(short int connId, float scale, bool updateWeightRange) {
 	}
 }
 
+void SNN::updateNM4Levels(int netID, int groupID, bool updateDA, bool update5HT, bool updateACh, bool updateNE, 
+	float levelDA, float level5HT, float levelACh, float levelNE) {
+	if (updateDA == true) {
+		managerRuntimeData.grpDA[groupID] = levelDA;
+		CUDA_CHECK_ERRORS(cudaMemcpy(&runtimeData[netID].grpDA[groupID], &managerRuntimeData.grpDA[groupID], sizeof(float), cudaMemcpyHostToDevice));
+	}
+	if (update5HT == true) {
+		managerRuntimeData.grp5HT[groupID] = level5HT;
+		CUDA_CHECK_ERRORS(cudaMemcpy(&runtimeData[netID].grp5HT[groupID], &managerRuntimeData.grp5HT[groupID], sizeof(float), cudaMemcpyHostToDevice));
+	}
+	if (updateACh == true) {
+		managerRuntimeData.grpACh[groupID] = levelACh;
+		CUDA_CHECK_ERRORS(cudaMemcpy(&runtimeData[netID].grpACh[groupID], &managerRuntimeData.grpACh[groupID], sizeof(float), cudaMemcpyHostToDevice));
+	}
+	if (updateNE == true) {
+		managerRuntimeData.grpNE[groupID] = levelNE;
+		CUDA_CHECK_ERRORS(cudaMemcpy(&runtimeData[netID].grpNE[groupID], &managerRuntimeData.grpNE[groupID], sizeof(float), cudaMemcpyHostToDevice));
+	}
+}
+
 // FIXME: distinguish the function call at CONFIG_STATE and SETUP_STATE, where groupConfigs[0][] might not be available
 // or groupConfigMap is not sync with groupConfigs[0][]
 GroupMonitor* SNN::setGroupMonitor(int gGrpId, FILE* fid, int mode) {
