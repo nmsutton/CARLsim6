@@ -24,6 +24,7 @@ add_executable(carlsim-tests6
 	pka_plc_mod.cpp
 	receptors.cpp
 	nrn_mon.cpp
+    nm4_update.cpp
 )
 
 #ISSUE: gtest flags gtest death test style lnk1120 unresolved externals     
