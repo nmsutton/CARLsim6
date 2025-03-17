@@ -706,7 +706,9 @@ typedef struct RuntimeData_s {
 	float* gGABAb;  //!< conductance of gGABAb
 	float* gGABAb_r;
 	float* gGABAb_d;
-
+#if CARLSIM_PRESYN_CENT_STDP
+	int* post_spikes;
+#endif
 	int* I_set; //!< an array of bits indicating which synapse got a spike
 
 	MemType memType;
@@ -854,6 +856,10 @@ typedef struct NetworkConfigRT_s  {
 	// configurations for runtime data sizes
 	unsigned int I_setLength; //!< used for GPU only
 	size_t       I_setPitch;  //!< used for GPU only
+#if CARLSIM_PRESYN_CENT_STDP	
+	unsigned int stdp_gLength2; //!< used for GPU only
+	size_t       stdp_gPitch2;  //!< used for GPU only
+#endif
 	size_t       STP_Pitch;   //!< numN rounded upwards to the nearest 256 boundary, used for GPU only
 	int numPostSynNet;        //!< the total number of post-connections in a network
 	int numPreSynNet;         //!< the total number of pre-connections in a network

@@ -171,6 +171,16 @@ __device__ inline unsigned int* getFiringBitGroupPtr(int lNId, int synId) {
 	return (((unsigned int*)((char*)runtimeDataGPU.I_set + synId * networkConfigGPU.I_setPitch)) + lNId);
 }
 
+#ifdef CARLSIM_PRESYN_CENT_STDP
+__device__ inline void setPostSpikesValue(int neuron_id, int time_index, int value) {
+	int* tmp_p2 = ((int*)((char*)runtimeDataGPU.post_spikes + time_index * networkConfigGPU.stdp_gPitch2) + neuron_id);
+	atomicExch(tmp_p2,value);
+}
+__device__ inline int* getPostSpikesPtr(int neuron_id, int time_index) {
+	return (((int*)((char*)runtimeDataGPU.post_spikes + time_index * networkConfigGPU.stdp_gPitch2)) + neuron_id);
+}
+#endif
+
 __device__ inline int getSTPBufPos(int lNId, int simTime) {
 	return (((simTime + 1) % (networkConfigGPU.maxDelay + 1)) * networkConfigGPU.STP_Pitch + lNId);
 }
@@ -1319,7 +1329,20 @@ __device__ void updateLTP(int* fireTablePtr, short int* fireGrpId, volatile unsi
 					p+=LTP_GROUPING_SZ) {
 				short connId = runtimeDataGPU.connIdsPreIdx[p];
 				int stdp_tDiff = (simTime - runtimeDataGPU.synSpikeTime[p]);
+#if CARLSIM_PRESYN_CENT_STDP
+				// store post spikes times
+				int* post_spikes_ptr;
+				// shift back old times
+				post_spikes_ptr = getPostSpikesPtr(nid, 0);	
+				setPostSpikesValue(nid, 1, *post_spikes_ptr);
+				// set new time
+				setPostSpikesValue(nid, 0, simTime);
+				post_spikes_ptr = getPostSpikesPtr(nid, 1);
+				int stdp_tDiff_lastpost = (runtimeDataGPU.synSpikeTime[p] - *post_spikes_ptr);
+				if (stdp_tDiff > 0 && stdp_tDiff_lastpost > 0 && *post_spikes_ptr != 0) {
+#else
 				if (stdp_tDiff > 0) {
+#endif
 					if (connectConfigsGPU[connId].WithESTDP) {
 						// Handle E-STDP curves
 						switch (connectConfigsGPU[connId].WithESTDPcurve) {
@@ -1403,7 +1426,84 @@ __device__ void updateLTP(int* fireTablePtr, short int* fireGrpId, volatile unsi
 							break;
 						}
 					}
+#if CARLSIM_PRESYN_CENT_STDP
+					// process post before pre
+					if (connectConfigsGPU[connId].WithESTDP) {
+						// Handle E-STDP curves
+						switch (connectConfigsGPU[connId].WithESTDPcurve) {
+		#ifdef LN_I_CALC_TYPES
+						case EXP_CURVE: // exponential curve
+							if (stdp_tDiff_lastpost * connectConfigsGPU[connId].TAU_MINUS_INV_EXC < 25.0f) 
+								if(connectConfigsGPU[connId].WithESTDPtype == PKA_PLC_MOD) {
+
+									auto weight_nm = [&](float& nm, int i_nm) {
+										switch (i_nm) {			// index
+										case NM_DA:	 nm *= runtimeDataGPU.grpDA[grpId];
+											break;
+										case NM_5HT: nm *= runtimeDataGPU.grp5HT[grpId];
+											break;
+										case NM_ACh: nm *= runtimeDataGPU.grpACh[grpId];
+											break;
+										case NM_NE:  nm *= runtimeDataGPU.grpNE[grpId];
+											break;
+										};
+									};
+
+									float nm_pka = connectConfigsGPU[connId].W_PKA;
+									weight_nm(nm_pka, connectConfigsGPU[connId].NM_PKA);
+
+									float nm_plc = connectConfigsGPU[connId].W_PLC;
+									weight_nm(nm_plc, connectConfigsGPU[connId].NM_PLC);
+
+									float a_m = connectConfigsGPU[connId].ALPHA_MINUS_EXC;
+									float tau_m_inv = connectConfigsGPU[connId].TAU_MINUS_INV_EXC;
+
+									// f_pka_m = ne * (-a_m * exp(t_m * tau_p_inv))
+									float pka_m = nm_pka * STDPf(stdp_tDiff_lastpost, -a_m, tau_m_inv);  // no sign switch, see below: -= instead of += 
+
+									//f_plc_m = ach * 2 * (a_m * exp(t_m * tau_p_inv))
+									float plc_m = nm_plc * 2 * STDPf(stdp_tDiff_lastpost, a_m, tau_m_inv);  // no sign spwtich, see below: -= instead of +=
+										
+									runtimeDataGPU.wtChange[p] += pka_m + plc_m;
+								} 
+								else {
+									runtimeDataGPU.wtChange[p] += STDPf(stdp_tDiff_lastpost, connectConfigsGPU[connId].ALPHA_MINUS_EXC, connectConfigsGPU[connId].TAU_MINUS_INV_EXC); // uncoalesced access
+								}
+							break;
+		#else
+						case EXP_CURVE: // exponential curve
+		#endif
+						case TIMING_BASED_CURVE: // sc curve
+							if (stdp_tDiff_lastpost * connectConfigsGPU[connId].TAU_MINUS_INV_EXC < 25.0f)
+								runtimeDataGPU.wtChange[p] += STDPf(stdp_tDiff_lastpost, connectConfigsGPU[connId].ALPHA_MINUS_EXC, connectConfigsGPU[connId].TAU_MINUS_INV_EXC); // uncoalesced access
+							break;
+						default:
+							break;
+						}
+					}
+					if (connectConfigsGPU[connId].WithISTDP) {
+						// Handle I-STDP curves
+						switch (connectConfigsGPU[connId].WithISTDPcurve) {
+						case EXP_CURVE: // exponential curve
+							if ((stdp_tDiff_lastpost * connectConfigsGPU[connId].TAU_MINUS_INV_INB) < 25.0f) { // LTD of inhibitory syanpse, which increase synapse weight
+								runtimeDataGPU.wtChange[p] -= STDPf(stdp_tDiff_lastpost, connectConfigsGPU[connId].ALPHA_MINUS_INB, connectConfigsGPU[connId].TAU_MINUS_INV_INB);
+							}
+							break;
+						case PULSE_CURVE: // pulse curve
+							if (stdp_tDiff_lastpost <= connectConfigsGPU[connId].LAMBDA) { // LTP of inhibitory synapse, which decreases synapse weight
+								runtimeDataGPU.wtChange[p] -= connectConfigsGPU[connId].BETA_LTP;
+							} else if (stdp_tDiff_lastpost <= connectConfigsGPU[connId].DELTA) { // LTD of inhibitory syanpse, which increase synapse weight
+								runtimeDataGPU.wtChange[p] -= connectConfigsGPU[connId].BETA_LTD;
+							}
+							break;
+						default:
+							break;
+						}
+					}
 				}
+#else
+				}
+#endif
 			}
 		}
 	}
@@ -2747,6 +2847,7 @@ __device__ void generatePostSynapticSpike(int simTime, int preNId, int postNId, 
 	*/
 
 	// P3
+#if CARLSIM_PRESYN_CENT_STDP == 0
 	// STDP calculation: the post-synaptic neuron fires before the arrival of pre-synaptic neuron's spike
 	if (groupConfigsGPU[postGrpId].WithSTDP && !networkConfigGPU.sim_in_testing) {
 		int stdp_tDiff = simTime - runtimeDataGPU.lastSpikeTime[postNId];
@@ -2825,6 +2926,7 @@ __device__ void generatePostSynapticSpike(int simTime, int preNId, int postNId, 
 			}
 		}
 	}
+#endif
 }
 
 #define READ_CHUNK_SZ 64
@@ -4045,6 +4147,14 @@ void SNN::copyAuxiliaryData(int netId, int lGrpId, RuntimeData* dest, cudaMemcpy
 	assert(networkConfigs[netId].I_setPitch > 0 || networkConfigs[netId].maxNumPreSynN == 0);
 	CUDA_CHECK_ERRORS(cudaMemset(dest->I_set, 0, networkConfigs[netId].I_setPitch * networkConfigs[netId].I_setLength));
 
+#if CARLSIM_PRESYN_CENT_STDP
+	if(allocateMem) {
+		networkConfigs[netId].stdp_gLength2 = networkConfigs[netId].maxNumPreSynN;
+		CUDA_CHECK_ERRORS(cudaMallocPitch((void**)&dest->post_spikes, &networkConfigs[netId].stdp_gPitch2, sizeof(int) * networkConfigs[netId].stdp_gLength2, networkConfigs[netId].numNReg));
+	}
+	assert(networkConfigs[netId].stdp_gPitch2 > 0 || networkConfigs[netId].maxNumPreSynN == 0);
+#endif
+
 	// synSpikeTime: an array indicates the last time when a synapse got a spike
 	if(allocateMem)
 		CUDA_CHECK_ERRORS(cudaMalloc((void**)&dest->synSpikeTime, sizeof(int) * networkConfigs[netId].numPreSynNet));
@@ -4392,6 +4502,9 @@ void SNN::deleteRuntimeData_GPU(int netId) {
 	CUDA_CHECK_ERRORS( cudaFree(runtimeData[netId].postSynapticIds) );
 	CUDA_CHECK_ERRORS( cudaFree(runtimeData[netId].preSynapticIds) );
 	CUDA_CHECK_ERRORS( cudaFree(runtimeData[netId].I_set) );
+#if CARLSIM_PRESYN_CENT_STDP
+	CUDA_CHECK_ERRORS( cudaFree(runtimeData[netId].post_spikes) );
+#endif
 	CUDA_CHECK_ERRORS( cudaFree(runtimeData[netId].poissonFireRate) );
 	CUDA_CHECK_ERRORS( cudaFree(runtimeData[netId].lastSpikeTime) );
 	CUDA_CHECK_ERRORS( cudaFree(runtimeData[netId].spikeGenBits) );

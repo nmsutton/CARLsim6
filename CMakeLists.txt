@@ -56,9 +56,10 @@ endif()
 	option(CARLSIM_LN_GPU_STDP "Enables GPU accelerated functions for STDP" ON)  # feature GPU device functions (experimental)
 
 	option(CARLSIM_JK_CA3_SSN "J. Kopsick extensions for Neuron-Type Specific CA3 SNN" OFF) # feature ported on basis of CARLsim4 branch
+	option(CARLSIM_PRESYN_CENT_STDP "Use presynaptic centered STDP" ON)
 	option(CARLSIM_LN_AXON_PLAST "Axonal plasticity, Spiking Wave Propagation" ON) # L. Niedermeier, J. Krichmar, IJCNN 2023
 
-	set(CARLSIM_CUDA_GENCODE "" CACHE STRING "Enforce code generation for specific CUDA archtecture and device, e.g. -gencode arch=compute_86,code=sm_86 for RTX3090, 80 for A100, 61 for Titan Xp" )  
+	set(CARLSIM_CUDA_GENCODE "-gencode arch=compute_86,code=sm_86" CACHE STRING "Enforce code generation for specific CUDA archtecture and device, e.g. -gencode arch=compute_86,code=sm_86 for RTX3090, 80 for A100, 61 for Titan Xp" )  
 	
 	option(CARLSIM_FIX_SYNCTHREADS "Avoid blocking synthread call for Ampere GPUs" ON)  # Ported from CARLsim 4 on A100  
 
@@ -322,6 +323,13 @@ if(CARLSIM_JK_CA3_SSN)
 	if(NOT CARLSIM_NO_CUDA)
 		target_compile_definitions(carlsim-cuda PUBLIC JK_CA3_SNN)
 	endif()
+endif()
+
+if(CARLSIM_PRESYN_CENT_STDP)
+    target_compile_definitions(carlsim PUBLIC CARLSIM_PRESYN_CENT_STDP) 
+    if(NOT CARLSIM_NO_CUDA)
+        target_compile_definitions(carlsim-cuda PUBLIC CARLSIM_PRESYN_CENT_STDP) 
+    endif()
 endif()
 
 if(CARLSIM_FIX_SYNCTHREADS)

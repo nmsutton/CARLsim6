@@ -3585,6 +3585,15 @@ void SNN::copyAuxiliaryData(int netId, int lGrpId, RuntimeData* dest, bool alloc
 	assert(networkConfigs[netId].maxNumPreSynN >= 0);
 	memset(dest->I_set, 0, sizeof(int) * networkConfigs[netId].numNReg * networkConfigs[netId].I_setLength);
 
+#if CARLSIM_PRESYN_CENT_STDP
+	if(allocateMem) {
+		networkConfigs[netId].stdp_gLength2 = networkConfigs[netId].maxNumPreSynN;
+		dest->post_spikes = new int[networkConfigs[netId].numNReg * networkConfigs[netId].stdp_gLength2];		
+	}
+	assert(networkConfigs[netId].maxNumPreSynN >= 0);
+	memset(dest->post_spikes, 0, networkConfigs[netId].numNReg * networkConfigs[netId].stdp_gLength2);	
+#endif
+
 	// synSpikeTime: an array indicates the last time when a synapse got a spike
 	if(allocateMem)
 		dest->synSpikeTime = new int[networkConfigs[netId].numPreSynNet];
@@ -4069,6 +4078,9 @@ void SNN::copySpikeTables(int netId) {
 	delete [] runtimeData[netId].postSynapticIds;
 	delete [] runtimeData[netId].preSynapticIds;
 	delete [] runtimeData[netId].I_set;
+#if CARLSIM_PRESYN_CENT_STDP
+	delete [] runtimeData[netId].post_spikes;
+#endif
 	delete [] runtimeData[netId].poissonFireRate;
 	delete [] runtimeData[netId].lastSpikeTime;
 	delete [] runtimeData[netId].spikeGenBits;
