@@ -45,9 +45,11 @@ TEST(nm4update, firingRate) {
 	sim->setConnectionMonitor(EC_LI_II_Multipolar_Pyramidal,MEC_LII_Stellate,"DEFAULT");
 	// ---------------- RUN STATE -------------------
 	sim->setExternalCurrent(EC_LI_II_Multipolar_Pyramidal, 1000);
-	sim->updateNM4Levels(0, MEC_LII_Stellate, false, false, true, true, 0.0, 0.0, 1.0 /* ACh */, 0.0 /* NE */);
 	SpkMon->startRecording();
-	for (int i=0; i<10; i++) {sim->runNetwork(0,100, true);}
+	for (int i=0; i<10; i++) {
+		sim->runNetwork(0,100, true);
+		if(i==2){sim->updateNM4Levels(0, MEC_LII_Stellate, false, false, true, true, 0.0, 0.0, 1.0 /* ACh */, 0.0 /* NE */);}
+	}
 	SpkMon->stopRecording();
 	float firing_rate_test_1 = SpkMon->getPopMeanFiringRate();
 	SpkMon->print(false);
@@ -82,9 +84,11 @@ TEST(nm4update, firingRate) {
 	sim->setConnectionMonitor(EC_LI_II_Multipolar_Pyramidal,MEC_LII_Stellate,"DEFAULT");
 	// ---------------- RUN STATE -------------------
 	sim->setExternalCurrent(EC_LI_II_Multipolar_Pyramidal, 1000);
-	sim->updateNM4Levels(0, MEC_LII_Stellate, false, false, true, true, 0.0, 0.0, 0.0 /* ACh */, 1.0 /* NE */);
 	SpkMon->startRecording();
-	for (int i=0; i<10; i++) {sim->runNetwork(0,100, true);}
+	for (int i=0; i<10; i++) {
+		sim->runNetwork(0,100, true);
+		if(i==2){sim->updateNM4Levels(0, MEC_LII_Stellate, false, false, true, true, 0.0, 0.0, 0.0 /* ACh */, 1.0 /* NE */);}
+	}
 	SpkMon->stopRecording();
 	float firing_rate_test_2 = SpkMon->getPopMeanFiringRate();
 	SpkMon->print(false);
@@ -92,7 +96,7 @@ TEST(nm4update, firingRate) {
 
 	delete sim;
 
-	// Check that ACh = 1 and NE = 0 creates a lower firing rate than Ach = 0 and NE = 1.
+	// Check that ACh = 1 and NE = 0 creates a lower firing rate than ACh = 0 and NE = 1.
 	EXPECT_LE(firing_rate_test_1, firing_rate_test_2); // ms
 }
 
