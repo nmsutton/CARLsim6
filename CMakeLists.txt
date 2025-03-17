@@ -59,7 +59,7 @@ endif()
 	option(CARLSIM_PRESYN_CENT_STDP "Use presynaptic centered STDP" ON)
 	option(CARLSIM_LN_AXON_PLAST "Axonal plasticity, Spiking Wave Propagation" ON) # L. Niedermeier, J. Krichmar, IJCNN 2023
 
-	set(CARLSIM_CUDA_GENCODE "-gencode arch=compute_86,code=sm_86" CACHE STRING "Enforce code generation for specific CUDA archtecture and device, e.g. -gencode arch=compute_86,code=sm_86 for RTX3090, 80 for A100, 61 for Titan Xp" )  
+	set(CARLSIM_CUDA_GENCODE "" CACHE STRING "Enforce code generation for specific CUDA archtecture and device, e.g. -gencode arch=compute_86,code=sm_86 for RTX3090, 80 for A100, 61 for Titan Xp" )  
 	
 	option(CARLSIM_FIX_SYNCTHREADS "Avoid blocking synthread call for Ampere GPUs" ON)  # Ported from CARLsim 4 on A100  
 
