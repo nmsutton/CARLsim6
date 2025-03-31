@@ -693,6 +693,10 @@ __device__ void updateLTP(int* fireTablePtr, short int* fireGrpId, volatile unsi
 				short connId = runtimeDataGPU.connIdsPreIdx[p];
 				int stdp_tDiff = (simTime - runtimeDataGPU.synSpikeTime[p]);
 				if (stdp_tDiff > 0) {
+					//printf("pre_before_post: t:%d pre_id:%d post_id:%d pre_t:%d post_t:%d tDiff:%d\n",simTime,runtimeDataGPU.Npre_plastic[nid],nid,runtimeDataGPU.synSpikeTime[p],simTime,stdp_tDiff);
+					if (simTime > 1355 && simTime <= 1375 && nid >= 675 && nid < 750) {
+						//printf("%d\n",stdp_tDiff);
+					}
 					if (connectConfigsGPU[connId].WithESTDP) {
 						// Handle E-STDP curves
 						switch (connectConfigsGPU[connId].WithESTDPcurve) {
@@ -1045,8 +1049,39 @@ __global__ void kernel_conductanceUpdate (int simTimeMs, int simTimeSec, int sim
 
 							// dx/dt = (1-x)/tau_D - u^+ * x^- * \delta(t-t_{spk})
 							runtimeDataGPU.stpx[ind_plus] -= runtimeDataGPU.stpu[ind_plus] * runtimeDataGPU.stpx[ind_minus];
-
+#if CARLSIM_CSTP_NM
+							float STP_A;
+							auto& config = groupConfigsGPU[preGrpId];
+							if (config.WithNM4STP) {
+								float stp_a;
+								float stp_u = runtimeDataGPU.stp_U[pos];
+								float nm[NM_NE + 1];
+								int i = 0;
+								nm[i++] = config.activeDP ? runtimeDataGPU.grpDA[preGrpId] : 0.f;   // baseDP  is 0 at t=0 ???
+								nm[i++] = config.active5HT ? runtimeDataGPU.grp5HT[preGrpId] : 0.f;
+								nm[i++] = config.activeACh ? runtimeDataGPU.grpACh[preGrpId] : 0.f;
+								nm[i++] = config.activeNE ? runtimeDataGPU.grpNE[preGrpId] : 0.f;
+								float w_stp_u = 0.0f;
+								for (int i = 0; i < NM_NE + 1; i++) {
+									w_stp_u += nm[i] * config.wstpu[i];
+									//printf("i %d config.wstpu[i] %f\n",i,config.wstpu[i]);
+								}
+								w_stp_u *= config.wstpu[NM_NE + 1];
+								//printf("w_stp_u %f\n",w_stp_u);
+								stp_u *= w_stp_u + config.wstpu[NM_NE + 2];
+								// printf("stp_u %f\n",stp_u);
+								//stp_a = (stp_u > 0.0f) ? 1.0 / stp_u : 1.0f; // scaling factor weighted
+								STP_A = (stp_u > 0.0f) ? 1.0 / stp_u : 1.0f; // scaling factor weighted
+								//KERNEL_DEBUG("grp[%d] stp_u = %f  stp_a = %f\n", pre_grpId, stp_u, stp_a);
+								//printf("runtimeDataGPU.grpACh[preGrpId] %f\n",runtimeDataGPU.grpACh[preGrpId]);								
+								//printf("STP_A %f\n",STP_A);
+							}
+							else {
+								STP_A = (runtimeDataGPU.stp_U[pos] > 0.0f) ? 1.0 / runtimeDataGPU.stp_U[pos] : 1.0f;
+							}
+#else
 							float STP_A = (runtimeDataGPU.stp_U[pos] > 0.0f) ? 1.0 / runtimeDataGPU.stp_U[pos] : 1.0f;
+#endif
 							change *= STP_A * runtimeDataGPU.stpx[ind_minus] * runtimeDataGPU.stpu[ind_plus];
 
 							if (networkConfigGPU.sim_with_conductances) {
@@ -2051,10 +2086,44 @@ __global__ void kernel_STPUpdateAndDecayConductances (int t, int sec, int simTim
 					int ind_minus = getSTPBufPos(lSId, (simTime - 1)); // \FIXME should be adjusted for delay
 					int ind_plus = getSTPBufPos(lSId, (simTime));
 
+#if CARLSIM_CSTP_NM
+					auto config = groupConfigsGPU[grpId];
+					//float tau_u_inv = config.STP_tau_u_inv;
+					float tau_u_inv = runtimeDataGPU.stp_tau_u_inv[lSId];
+					//float tau_x_inv = config.STP_tau_x_inv;
+					float tau_x_inv = runtimeDataGPU.stp_tau_x_inv[lSId];
+					if (config.WithNM4STP) {
+						float nm[NM_NE + 1];
+						int i = 0;
+						nm[i++] = config.activeDP ? runtimeDataGPU.grpDA[grpId] : 0.f;   // baseDP  is 0 at t=0 ???
+						nm[i++] = config.active5HT ? runtimeDataGPU.grp5HT[grpId] : 0.f;
+						nm[i++] = config.activeACh ? runtimeDataGPU.grpACh[grpId] : 0.f;
+						nm[i++] = config.activeNE ? runtimeDataGPU.grpNE[grpId] : 0.f;
+						float tau_u = 1.0f / tau_u_inv;
+						float tau_x = 1.0f / tau_x_inv;
+						float w_tau_u = 0.0f;
+						float w_tau_x = 0.0f;
+						for (int i = 0; i < NM_NE + 1; i++) {
+							w_tau_u += nm[i] * config.wstptauu[i];
+							w_tau_x += nm[i] * config.wstptaux[i];
+						}
+						w_tau_u *= config.wstptauu[NM_NE + 1];
+						w_tau_x *= config.wstptaux[NM_NE + 1];
+						tau_u *= w_tau_u + config.wstptauu[NM_NE + 2];
+						tau_x *= w_tau_x + config.wstptaux[NM_NE + 2];
+						tau_u_inv = 1.0f / tau_u;
+						tau_x_inv = 1.0f / tau_x;
+						//printf("tau_u_inv %f tau_x_inv %f\n",tau_u_inv,tau_x_inv);
+						//printf("%f %f %f %f %f %f %f \n",tau_x_inv,runtimeDataGPU.grpACh[grpId],tau_x,config.wstptaux[2],w_tau_x,config.wstptaux[NM_NE + 1],config.wstptaux[NM_NE + 2]);
+					}
+					runtimeDataGPU.stpu[ind_plus] = runtimeDataGPU.stpu[ind_minus] * (1.0f - tau_u_inv);
+					runtimeDataGPU.stpx[ind_plus] = runtimeDataGPU.stpx[ind_minus] + (1.0f - runtimeDataGPU.stpx[ind_minus]) * tau_x_inv;
+#else
 					runtimeDataGPU.stpu[ind_plus] = runtimeDataGPU.stpu[ind_minus] * (1.0f - runtimeDataGPU.stp_tau_u_inv[lSId]);
 					runtimeDataGPU.stpx[ind_plus] = runtimeDataGPU.stpx[ind_minus] + (1.0f - runtimeDataGPU.stpx[ind_minus]) * runtimeDataGPU.stp_tau_x_inv[lSId];
+#endif
 					if (PRINT_STP_VARIABLES == 1 && lSId == 49 && nid == 50 && runtimeDataGPU.gAMPA[nid] > 0.1) {
-						//printf("t:%d pre:%d post:%d x:%f u:%f ampa:%f gabaa:%f\n",t,lSId,nid,runtimeDataGPU.stpx[ind_plus],runtimeDataGPU.stpu[ind_plus],runtimeDataGPU.gAMPA[nid],runtimeDataGPU.gGABAa[nid]);
+						printf("t:%d pre:%d post:%d x:%f u:%f ampa:%f gabaa:%f\n",t,lSId,nid,runtimeDataGPU.stpx[ind_plus],runtimeDataGPU.stpu[ind_plus],runtimeDataGPU.gAMPA[nid],runtimeDataGPU.gGABAa[nid]);
 					}
 				}
 			}
@@ -2093,9 +2162,9 @@ __global__ void kernel_STPUpdateAndDecayConductances (int t, int sec, int simTim
 			else {
 				runtimeDataGPU.gGABAb[nid] *= configs.dGABAb;
 			}*/
-			if (PRINT_STP_VARIABLES == 1 && nid == 99 && runtimeDataGPU.gAMPA[nid] > 0.1) {
-				printf("t:%d post:%d ampa:%f nmda:%f gabaa:%f\n",t,nid,runtimeDataGPU.gAMPA[nid],runtimeDataGPU.gNMDA_d[nid],runtimeDataGPU.gGABAa[nid]);
-			}
+			//if (PRINT_STP_VARIABLES == 1 && nid == 99 && runtimeDataGPU.gAMPA[nid] > 0.1) {
+			//	printf("t:%d post:%d ampa:%f nmda:%f gabaa:%f\n",t,nid,runtimeDataGPU.gAMPA[nid],runtimeDataGPU.gNMDA_d[nid],runtimeDataGPU.gGABAa[nid]);
+			//}
 			// int ind_plus  = getSTPBufPos(nid, simTime);
 			// int ind_minus = getSTPBufPos(nid, (simTime-1)); // \FIXME sure?
 		}
@@ -2322,6 +2391,12 @@ __device__ void updateSynapticWeights(int nid, unsigned int synId, int grpId, fl
 
 	runtimeDataGPU.wt[synId] = t_wt;
 	runtimeDataGPU.wtChange[synId] = t_wtChange;
+
+	// NS addition 03/20/25
+	// create non-zero minimum weight
+	// if (t_wt < 0.6) {
+	// 	runtimeDataGPU.wt[synId] = 0.6;
+	// }
 }
 
 
@@ -2542,6 +2617,9 @@ __device__ void generatePostSynapticSpike(int simTime, int preNId, int postNId, 
 	if (groupConfigsGPU[postGrpId].WithSTDP && !networkConfigGPU.sim_in_testing) {
 		int stdp_tDiff = simTime - runtimeDataGPU.lastSpikeTime[postNId];
 		if (stdp_tDiff >= 0) {
+			if (simTime > 1349 && simTime <= 1355 && postNId >= 675 && postNId < 750) {
+				//printf("%d\n",stdp_tDiff);
+			}
 			if (connectConfigsGPU[connId].WithESTDP) {
 				// Handle E-STDP curves
 				switch (connectConfigsGPU[connId].WithESTDPcurve) {

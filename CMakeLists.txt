@@ -32,7 +32,7 @@ endif()
     option(CARLSIM_TUTORIALS "Build CARLSIM tutorials" OFF)      # not for minimal version and production     
     option(CARLSIM_PYCARL "Build CARLSIM PyCARL" ON)            # not for CR but SNN
     option(CARLSIM_TOOLS "Build CARLSIM Tools" ON)              # check for dependecies
-    option(CARLSIM_TEST "Build CARLSIM Tests" OFF)               # mandadory for development
+    option(CARLSIM_TEST "Build CARLSIM Tests" ON)               # mandadory for development
          
     # an option translates to one or more compile definitions assigned to one or multiple targets
     # it can be set manually or by a super build customized to a specific profil
@@ -50,6 +50,7 @@ endif()
 
 	option(CARLSIM_JK_CA3_SNN "J. Koppsick extensions for Neuron-Type Specific CA3 SNN" ON) # feature ported on basis of CARLsim4 branch
     option(CARLSIM_CSTP_DOUBLES "Use doubles instead of floats for computing CSTP conductance decay" ON)
+    option(CARLSIM_CSTP_NM "Use STP neuromodulation with CSTP" ON)
 
 	set(CARLSIM_CUDA_GENCODE "-gencode arch=compute_86,code=sm_86" CACHE STRING "CUDA target architecture and device, e.g. _80 for Ampere/A100, _86 for Ampere/RTX3090" )  
 			
@@ -270,6 +271,13 @@ if(CARLSIM_SHARED)
         target_compile_definitions(carlsim PUBLIC CSTP_DOUBLES) 
         if(NOT CARLSIM_NO_CUDA)
             target_compile_definitions(carlsim-cuda PUBLIC CSTP_DOUBLES) 
+        endif()
+    endif()
+
+    if(CARLSIM_CSTP_NM)
+        target_compile_definitions(carlsim PUBLIC CARLSIM_CSTP_NM) 
+        if(NOT CARLSIM_NO_CUDA)
+            target_compile_definitions(carlsim-cuda PUBLIC CARLSIM_CSTP_NM) 
         endif()
     endif()
 

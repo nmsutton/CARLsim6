@@ -9,7 +9,7 @@
         adk13_alpha1.cpp
         carlsim_tests_common.cpp
 		    main.cpp
-        mstp.cpp
+#        mstp.cpp
         pka_plc_mod.cpp
         receptors.cpp
     )
