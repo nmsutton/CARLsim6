@@ -2087,7 +2087,12 @@ __global__ void kernel_STPUpdateAndDecayConductances (int t, int sec, int simTim
 					int ind_plus = getSTPBufPos(lSId, (simTime));
 
 #if CARLSIM_CSTP_NM
-					auto config = groupConfigsGPU[grpId];
+					SynInfo synInfo = runtimeDataGPU.preSynapticIds[lSId];
+					uint32_t  preNId = GET_CONN_NEURON_ID(synInfo);
+					short int preGrpId = runtimeDataGPU.grpIds[preNId];
+
+					//auto config = groupConfigsGPU[grpId];
+					auto config = groupConfigsGPU[preGrpId];
 					//float tau_u_inv = config.STP_tau_u_inv;
 					float tau_u_inv = runtimeDataGPU.stp_tau_u_inv[lSId];
 					//float tau_x_inv = config.STP_tau_x_inv;
@@ -2095,10 +2100,10 @@ __global__ void kernel_STPUpdateAndDecayConductances (int t, int sec, int simTim
 					if (config.WithNM4STP) {
 						float nm[NM_NE + 1];
 						int i = 0;
-						nm[i++] = config.activeDP ? runtimeDataGPU.grpDA[grpId] : 0.f;   // baseDP  is 0 at t=0 ???
-						nm[i++] = config.active5HT ? runtimeDataGPU.grp5HT[grpId] : 0.f;
-						nm[i++] = config.activeACh ? runtimeDataGPU.grpACh[grpId] : 0.f;
-						nm[i++] = config.activeNE ? runtimeDataGPU.grpNE[grpId] : 0.f;
+						nm[i++] = config.activeDP ? runtimeDataGPU.grpDA[preGrpId] : 0.f;   // baseDP  is 0 at t=0 ???
+						nm[i++] = config.active5HT ? runtimeDataGPU.grp5HT[preGrpId] : 0.f;
+						nm[i++] = config.activeACh ? runtimeDataGPU.grpACh[preGrpId] : 0.f;
+						nm[i++] = config.activeNE ? runtimeDataGPU.grpNE[preGrpId] : 0.f;
 						float tau_u = 1.0f / tau_u_inv;
 						float tau_x = 1.0f / tau_x_inv;
 						float w_tau_u = 0.0f;
