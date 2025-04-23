@@ -171,7 +171,7 @@ __device__ inline unsigned int* getFiringBitGroupPtr(int lNId, int synId) {
 	return (((unsigned int*)((char*)runtimeDataGPU.I_set + synId * networkConfigGPU.I_setPitch)) + lNId);
 }
 
-#ifdef CARLSIM_PRESYN_CENT_STDP
+#if CARLSIM_PRESYN_CENT_STDP
 __device__ inline void setPostSpikesValue(int neuron_id, int time_index, int value) {
 	int* tmp_p2 = ((int*)((char*)runtimeDataGPU.post_spikes + time_index * networkConfigGPU.stdp_gPitch2) + neuron_id);
 	atomicExch(tmp_p2,value);
