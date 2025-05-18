@@ -788,7 +788,7 @@ typedef struct RuntimeData_s {
 		float* GABAb_d_syn_g;
 		float* GABAb_r_syn_g;		
 	#endif
-	#ifdef CARLSIM_ALLTOALL_STDP
+	#ifdef CARLSIM_PRESYN_CENT_STDP
 		int* pre_spikes;
 		int* post_spikes;
 	#endif
@@ -956,7 +956,7 @@ typedef struct NetworkConfigRT_s  {
 #if JK_CA3_SNN
 	unsigned int syn_gLength; //!< used for GPU only
 	size_t       syn_gPitch;  //!< used for GPU only	
-	#if CARLSIM_ALLTOALL_STDP
+	#if CARLSIM_PRESYN_CENT_STDP
 		unsigned int stdp_gLength; //!< used for GPU only
 		size_t       stdp_gPitch;  //!< used for GPU only	
 		unsigned int stdp_gLength2; //!< used for GPU only

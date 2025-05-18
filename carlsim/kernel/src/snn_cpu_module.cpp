@@ -3128,7 +3128,7 @@ void SNN::copyAuxiliaryData(int netId, int lGrpId, RuntimeData* dest, bool alloc
 			dest->GABAb_d_syn_g = new float[networkConfigs[netId].numNReg * networkConfigs[netId].syn_gLength];
 			dest->GABAb_r_syn_g = new float[networkConfigs[netId].numNReg * networkConfigs[netId].syn_gLength];					
 		#endif
-		#if CARLSIM_ALLTOALL_STDP
+		#if CARLSIM_PRESYN_CENT_STDP
 			dest->pre_spikes = new int[networkConfigs[netId].numNReg * networkConfigs[netId].stdp_gLength];		
 			dest->post_spikes = new int[networkConfigs[netId].numNReg * networkConfigs[netId].stdp_gLength2];		
 		#endif
@@ -3140,7 +3140,7 @@ void SNN::copyAuxiliaryData(int netId, int lGrpId, RuntimeData* dest, bool alloc
 	memset(dest->GABAa_syn_g, 0, networkConfigs[netId].numNReg * networkConfigs[netId].syn_gLength);
 	memset(dest->GABAb_d_syn_g, 0, networkConfigs[netId].numNReg * networkConfigs[netId].syn_gLength);
 	memset(dest->GABAb_r_syn_g, 0, networkConfigs[netId].numNReg * networkConfigs[netId].syn_gLength);	
-	#if CARLSIM_ALLTOALL_STDP
+	#if CARLSIM_PRESYN_CENT_STDP
 		memset(dest->pre_spikes, 0, networkConfigs[netId].numNReg * networkConfigs[netId].stdp_gLength);	
 		memset(dest->post_spikes, 0, networkConfigs[netId].numNReg * networkConfigs[netId].stdp_gLength2);	
 	#endif
@@ -3626,7 +3626,7 @@ void SNN::copySpikeTables(int netId) {
 	delete [] runtimeData[netId].GABAa_syn_g;
 	delete [] runtimeData[netId].GABAb_d_syn_g;
 	delete [] runtimeData[netId].GABAb_r_syn_g;
-	#if CARLSIM_ALLTOALL_STDP
+	#if CARLSIM_PRESYN_CENT_STDP
 		delete [] runtimeData[netId].pre_spikes;
 		delete [] runtimeData[netId].post_spikes;
 	#endif

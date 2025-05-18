@@ -50,7 +50,7 @@ endif()
 
 	option(CARLSIM_JK_CA3_SNN "J. Koppsick extensions for Neuron-Type Specific CA3 SNN" ON) # feature ported on basis of CARLsim4 branch
     option(CARLSIM_CSTP_DOUBLES "Use doubles instead of floats for computing CSTP conductance decay" ON)
-    option(CARLSIM_ALLTOALL_STDP "Use all-to-all STDP instead of nearest neighbor" ON)
+    option(CARLSIM_ALLTOALL_STDP "Use all-to-all STDP instead of nearest neighbor" OFF)
     option(CARLSIM_PRESYN_CENT_STDP "Use presynaptic centered STDP" ON)
 
 	set(CARLSIM_CUDA_GENCODE "-gencode arch=compute_86,code=sm_86" CACHE STRING "CUDA target architecture and device, e.g. _80 for Ampere/A100, _86 for Ampere/RTX3090" )  

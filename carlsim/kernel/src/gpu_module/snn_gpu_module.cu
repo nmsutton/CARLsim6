@@ -281,7 +281,7 @@ __device__ inline float* getGABABRSynGPtr(int post_id, int pre_index) {
 	return (((float*)((char*)runtimeDataGPU.GABAb_r_syn_g + post_id * networkConfigGPU.syn_gPitch)) + pre_index);
 }
 #endif
-#ifdef CARLSIM_ALLTOALL_STDP
+#ifdef CARLSIM_PRESYN_CENT_STDP
 __device__ inline void setPreSpikesValue(int neuron_id, int time_index, int value) {
 	//int* tmp_p = ((int*)((char*)runtimeDataGPU.pre_spikes + neuron_id * networkConfigGPU.stdp_gPitch) + time_index);
 	int* tmp_p = ((int*)((char*)runtimeDataGPU.pre_spikes + time_index * networkConfigGPU.stdp_gPitch) + neuron_id);
@@ -997,16 +997,6 @@ __global__ 	void kernel_findFiring (int simTimeMs, int simTime) {
 								needToWrite = false;
 							}
 						}
-#if CARLSIM_ALLTOALL_STDP
-		// // store spike times
-		// for (int i = 0; i < 20; i++) {
-		// 	// shift back old times
-		// 	int* post_spikes_ptr = getPostSpikesPtr(lNId, i);	
-		// 	setPostSpikesValue(lNId, i+1, *post_spikes_ptr);
-		// }
-		// // set new time
-		// setPostSpikesValue(lNId, 0, simTime);
-#endif
 					}
 					else {
 				        runtimeDataGPU.curSpike[lNId] = false;
@@ -2634,28 +2624,6 @@ __device__ void generatePostSynapticSpike(int simTime, int preNId, int postNId, 
 	// P1
 	runtimeDataGPU.synSpikeTime[pos] = simTime;		  //uncoalesced access
 
-	#ifdef CARLSIM_ALLTOALL_STDP
-		// printf("pos: %d\n",pos);
-		// store spike times
-		// for (int i = 0; i < 20; i++) {
-		// 	// shift back old times
-		// 	int* pre_spikes_ptr = getPreSpikesPtr(pos, i);				
-		// 	setPreSpikesValue(pos, i+1, *pre_spikes_ptr);
-		// }
-		// // set new time
-		// setPreSpikesValue(pos, 0, simTime);
-		//setPreSpikesValue(120532, 0, simTime);
-		// setPreSpikesValue(pos, 20, simTime);
-		// for (int i = 0; i < 20; i++) {
-		// 	setPreSpikesValue(pos, i, simTime);
-		// }
-		// //printf("pos: %d\n",pos);
-		// int* pre_spikes_ptr = getPreSpikesPtr(pos, 0);
-		// if (*pre_spikes_ptr>0) {
-		// 	printf("pre_spikes_ptr: %d\n",*pre_spikes_ptr);
-		// }
-	#endif
-
 	// P2
 	// Got one spike from dopaminergic neuron, increase dopamine concentration in the target area
 	if (groupConfigsGPU[preGrpId].Type & TARGET_DA) {
@@ -4116,15 +4084,9 @@ void SNN::copyAuxiliaryData(int netId, int lGrpId, RuntimeData* dest, cudaMemcpy
 			CUDA_CHECK_ERRORS(cudaMallocPitch((void**)&dest->GABAb_d_syn_g, &networkConfigs[netId].syn_gPitch, sizeof(float) * networkConfigs[netId].syn_gLength, networkConfigs[netId].numNReg));
 			CUDA_CHECK_ERRORS(cudaMallocPitch((void**)&dest->GABAb_r_syn_g, &networkConfigs[netId].syn_gPitch, sizeof(float) * networkConfigs[netId].syn_gLength, networkConfigs[netId].numNReg));
 		#endif
-		#if CARLSIM_ALLTOALL_STDP
+		#if CARLSIM_PRESYN_CENT_STDP
 			networkConfigs[netId].stdp_gLength = networkConfigs[netId].maxNumPreSynN;
 			networkConfigs[netId].stdp_gLength2 = networkConfigs[netId].maxNumPreSynN;
-			// note: use 10^x code to store spike times. E.g., 1000100101. Each code must be greater then 1000000000. 2000000000 could represent the greatest digit's spike or not
-			// 1000100101 would have a spike at the 1, 3, and 5th time position. Use parallel arrays for more tracking of spike times.
-			// E.g., pre_spikes_1 are times 1-10, pre_spikes_2 are times 11-20, pre_spikes_3 are times 21-30. Do the same for post spikes.
-			// Each of these are arrays the size of all neurons either in the sim or can be in a sim as the max amount.
-			// Maybe a bit shift operator exists that could automate this. Try making this on the small scale before coding it in CARLsim.
-			// watch out for bit shift shifting past 1000000000 making it 100000000
 			CUDA_CHECK_ERRORS(cudaMallocPitch((void**)&dest->pre_spikes, &networkConfigs[netId].stdp_gPitch, sizeof(int) * networkConfigs[netId].stdp_gLength, networkConfigs[netId].numNReg));
 			CUDA_CHECK_ERRORS(cudaMallocPitch((void**)&dest->post_spikes, &networkConfigs[netId].stdp_gPitch2, sizeof(int) * networkConfigs[netId].stdp_gLength2, networkConfigs[netId].numNReg));
 		#endif
@@ -4137,7 +4099,7 @@ void SNN::copyAuxiliaryData(int netId, int lGrpId, RuntimeData* dest, cudaMemcpy
 	CUDA_CHECK_ERRORS(cudaMemset(dest->GABAb_d_syn_g, 0, networkConfigs[netId].syn_gPitch * networkConfigs[netId].syn_gLength));
 	CUDA_CHECK_ERRORS(cudaMemset(dest->GABAb_r_syn_g, 0, networkConfigs[netId].syn_gPitch * networkConfigs[netId].syn_gLength));	
 	assert(networkConfigs[netId].stdp_gPitch > 0 || networkConfigs[netId].maxNumPreSynN == 0);
-	#if CARLSIM_ALLTOALL_STDP
+	#if CARLSIM_PRESYN_CENT_STDP
 		CUDA_CHECK_ERRORS(cudaMemset(dest->pre_spikes, 0, networkConfigs[netId].stdp_gPitch * networkConfigs[netId].stdp_gLength));	
 		CUDA_CHECK_ERRORS(cudaMemset(dest->post_spikes, 0, networkConfigs[netId].stdp_gPitch2 * networkConfigs[netId].stdp_gLength2));	
 	#endif
@@ -4501,7 +4463,7 @@ void SNN::deleteRuntimeData_GPU(int netId) {
 	CUDA_CHECK_ERRORS( cudaFree(runtimeData[netId].GABAa_syn_g) );	
 	CUDA_CHECK_ERRORS( cudaFree(runtimeData[netId].GABAb_d_syn_g) );
 	CUDA_CHECK_ERRORS( cudaFree(runtimeData[netId].GABAb_r_syn_g) );
-	#if CARLSIM_ALLTOALL_STDP
+	#if CARLSIM_PRESYN_CENT_STDP
 		CUDA_CHECK_ERRORS( cudaFree(runtimeData[netId].pre_spikes) );
 		CUDA_CHECK_ERRORS( cudaFree(runtimeData[netId].post_spikes) );
 	#endif
